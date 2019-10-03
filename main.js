@@ -1,7 +1,14 @@
 import {sound,t_onset,f_onset,e,max_freq} from './data.js'
 import {updateState, get_pressed} from './statemanager.js'
 import {select_visible_input_idx} from './analysis.js'
-import { drawStates, drawInstrument } from './drawer.js';
+import { drawStates, drawInstrument, draw_score } from './drawer.js';
+
+
+// TODO  
+// High intensity sparse detection + compensation
+// Fix bug with score decrements
+// streak bonus
+// prettier particles
 
 sound.play();
 
@@ -25,7 +32,7 @@ function main() {
   var pressed = get_pressed()
   drawStates(visible_idx,states,ctx,t_min,t_max)
   drawInstrument(t_cur,t_min,t_max,pressed,ctx)
-
+  draw_score(ctx)
   window.requestAnimationFrame(main);
 }
 main()

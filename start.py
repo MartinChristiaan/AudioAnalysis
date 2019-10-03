@@ -19,7 +19,7 @@ def load_song(src):
         sound.export(musicdir + dst, format="wav")
     
 
-    if not path.exists(datadir + src[:-4] + ".txt"):
+    if True:#not path.exists(datadir + src[:-4] + ".txt"):
         print("Performing analysis")
         print("Loading Wav")
         
@@ -33,6 +33,8 @@ def load_song(src):
         tempo, frames = librosa.beat.beat_track(y=y,sr=sr)
         print("onset")
         onset = librosa.onset.onset_detect(y,sr)
+        onset = np.unique(np.append(onset,frames))
+        onset.sort()
 #        onset_strengths = librosa.onset.onset_strength(y,sr)
 #        onset_strengths = librosa.onset.onset_strength(y,sr)
 #

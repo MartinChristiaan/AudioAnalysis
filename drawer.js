@@ -1,5 +1,6 @@
 import { t_onset,f_onset,max_freq } from "./data.js";
 import {get_note_color} from "./colorizer.js"
+import { score } from "./statemanager.js";
 export function drawStates(visible_idx,note_states,ctx,t_min,t_max)
 {
     visible_idx.forEach(i => {
@@ -48,8 +49,16 @@ export function drawInstrument(t_cur,t_min,t_max,pressed,ctx)
           ctx.strokeStyle = get_note_color((f+1)/max_freq)
         }
         ctx.moveTo(x_start, y_now)
-        ctx.lineTo(x_stop, y_now);
+        ctx.lineTo(x_stop, y_now)
         ctx.stroke();
         ctx.restore()
     }
+}
+
+export function draw_score(ctx) //: CanvasRenderingContext2D)
+{
+  ctx.lineWidth = 2
+  ctx.font = "30px Arial";
+  ctx.strokeStyle = "white"
+  ctx.strokeText(score,100,100,100)
 }

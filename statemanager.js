@@ -4,7 +4,7 @@ var pressed = new Array(max_freq).fill(0);
 var keycodes = ["a","s","j","k"]//.,"d","f","g","h","j","k","l","m","n"]
 const margin = 0.05
 
-var score = 0
+export var score = 0
 // miss = 2
 
 export function updateState(visible_idx,t_cur)
@@ -20,8 +20,8 @@ export function updateState(visible_idx,t_cur)
              
                 if (pressed[parseInt(f_onset[idx])] > 0) { // right button hit
                     note_states[idx] = 1                // hit
-                    score+-pressed[parseInt(f_onset[idx])]
-                    pressed[parseInt(f_onset[idx])] = 0                    
+                    score+=pressed[parseInt(f_onset[idx])]
+                    //pressed[parseInt(f_onset[idx])] = 0                    
                 }
             }
             else if(t_cur > t_max) //no longer hittable
@@ -43,7 +43,14 @@ export function updateState(visible_idx,t_cur)
     });
 
     for (let idx = 0; idx < pressed.length; idx++) {
-        pressed[idx]--;
+        
+        if (pressed[idx]>0) {
+            pressed[idx]--;
+            if(pressed[idx] == 0)
+            {
+                //score-=2
+            }    
+        }
     }
 
     return note_states
