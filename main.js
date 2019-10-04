@@ -1,43 +1,36 @@
-import {sound,t_onset,f_onset,e,max_freq} from './data.js'
-import {updateState, get_pressed, getSpeed} from './statemanager.js'
-import {select_visible_input_idx} from './analysis.js'
-import { drawStates, drawInstrument, draw_score } from './drawer.js';
+import {drawStates, drawInstrument, draw_score } from './drawer.js';
 
-
+import {src,t_onset,f_onset,e} from "./data.js"
+import {Song} from './song.ts'
+import {ScoreManager} from './scoremanager.js'
+import {HitDetection} from './hitdetection.js'
 // TODO  
 
 // streak bonus
 // prettier particles
 
-sound.play();
-sound.volume(0)
 var canvas = document.querySelector('canvas')
+var ctx = canvas.getContext('2d')
 canvas.width = innerWidth
 canvas.height = innerHeight
+var song = new Song(src,t_onset,f_onset,e) 
+var scoreManager = ScoreManager()
+var hitDetection = HitDetection()
 
-
-
-//sound.play();
 // momentum system : streak for speed
-var speed = 1
 
-const speed_mults = [1,0.8,0.6,0.5,0.4]
+//const speed_mults = [1,0.8,0.6,0.5,0.4]
 
 function main() {
-  var t_cur = sound.seek()
-  var duration = sound.duration()
 
-  var cur_idx =  parseInt(t_cur/duration * e.length)
-
-  var speed = getSpeed()
-  
-  var delta = 2/(speed+1) //0.5/e[cur_idx]  0.5/speed
-  var t_max = (t_cur + delta) 
-  var t_min = (t_cur - 0.5 * delta)
-
-  var ctx = canvas.getContext('2d')
   ctx.clearRect(0, 0, innerWidth, innerHeight); // clear canvas
 
+
+  var speed:number = scoreManager.getSpeed()
+  song.update(speed)
+  hitDetection.detectHits()
+
+  
   var visible_idx = select_visible_input_idx(t_cur,t_min,t_max)
   var states = updateState(visible_idx,t_cur)
   var pressed = get_pressed()
