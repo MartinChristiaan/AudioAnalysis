@@ -17,3 +17,8 @@ export function select_visible_input_idx(t_cur,t_min,t_max)
     }
     return visible_idx
 }
+export function get_current_energy(t_cur)
+{
+    
+
+}

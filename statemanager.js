@@ -4,8 +4,31 @@ var pressed = new Array(max_freq).fill(0);
 var keycodes = ["a","s","j","k"]//.,"d","f","g","h","j","k","l","m","n"]
 const margin = 0.05
 
+
+
 export var score = 0
+var level_thresholds = [0,300,800,1200]
+
+export function getSpeed()// continous
+{
+    for (let idx = 0; idx < level_thresholds.length; idx++) {
+       if (score > level_thresholds[idx])
+       {
+            if (idx < level_thresholds.length-1) {
+                return idx + (score - level_thresholds[idx])/(level_thresholds[idx + 1] - level_thresholds[idx])    
+            }
+            else
+            {
+                return idx
+            }
+       }        
+    }
+    return 0
+}
+
 // miss = 2
+
+
 
 export function updateState(visible_idx,t_cur)
 {   
@@ -28,8 +51,7 @@ export function updateState(visible_idx,t_cur)
             {
 
                 note_states[idx] = 2 // miss
-                score-=2
-             
+                score-=0.3*score
             }
         }
         else if(note_states[idx] == 1){ // hit = 1
