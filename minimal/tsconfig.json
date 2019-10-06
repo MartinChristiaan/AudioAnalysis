@@ -1,0 +1,12 @@
+{
+    "files": [
+        "src/*.ts"
+    ],
+    "compilerOptions": {
+        "target": "es5",
+        "lib": [
+            "dom",
+            "es7"
+         ]
+    }
+}
