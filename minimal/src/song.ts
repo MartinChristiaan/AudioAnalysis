@@ -1,5 +1,6 @@
 import {Howl, Howler} from 'howler';
 import {SongData} from './data/lib'
+import { maxNotes } from './config';
 export class Song
 {
     t_max:number;
@@ -21,10 +22,10 @@ export class Song
         this.duration = this.sound.duration()
         this.t_cur = this.sound.seek()
         
-        var max = Math.max(...data.f_onset))
+        var max = Math.max(...data.f_onset)
           
 
-        this.f_onset = 
+        this.f_onset = data.f_onset.map(x => {return Math.round(x/max * (maxNotes-1))})
         this.t_onset = data.t_onset
         this.e = data.e
         this.visibleIdx  = []
