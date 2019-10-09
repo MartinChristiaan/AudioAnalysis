@@ -18,7 +18,7 @@ export class InstrumentDrawer {
         for (let f = 0; f < maxNotes ; f++) {
             var x_start = (f) / (maxNotes ) * innerWidth
             var x_stop = (f + 1) / (maxNotes) * innerWidth
-
+ 
             //console.log(x_stop)
             ctx.beginPath();
             //

@@ -16,21 +16,21 @@ export class Song
     e_cur:number;
 
 
-    constructor(data:SongData)
+    constructor({t_onset,f_onset,e,name})
     {
         this.sound =new Howl({
-            src: ['../music/' + data.name]
+            src: ['../music/' + name]
           });
         //this.sound.volume(0)
         this.sound.play()
         this.duration = this.sound.duration()
         this.t_cur = this.sound.seek()
         
-        var max = Math.max(...data.f_onset)
-        this.f_onset = data.f_onset.map(x => {return Math.round(x/max * (maxNotes-1))})
-        this.t_onset = data.t_onset
-        this.e = data.e
-        this.e_cur = data.e[0]
+        var max = Math.max(...f_onset)
+        this.f_onset = f_onset.map(x => {return Math.round(x/max * (maxNotes-1))})
+        this.t_onset = t_onset
+        this.e = e
+        this.e_cur = e[0]
         this.visibleIdx  = []
             
     }
@@ -39,7 +39,6 @@ export class Song
         this.duration = this.sound.duration()
         this.t_cur = this.sound.seek()
         var delta = 2/(speed * dt +1)
-        console.log(dt)
         this.t_max = this.t_cur +delta // speed code
         this.t_min = this.t_cur - .5*delta // speed code
         this.e_cur = this.e[Math.round(this.t_cur/this.duration * this.e.length)]

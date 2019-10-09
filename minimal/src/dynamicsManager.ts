@@ -6,7 +6,7 @@ export class DynamicsManager {
     speed: number;
     distance: number;
     speedLevelPercent: number;
-    speedLevelIdx: number;
+    scoreLevelIdx: number;
 
     song: Song;
     topSpeed: number;
@@ -15,6 +15,7 @@ export class DynamicsManager {
     levelupsound: Howl;
     errorsound: Howl;
     hitSFX: Howl;
+    score: number;
     // discrete levels for color
     // if level is complete you can no longer fall back return
     // do camera shake on level complete
@@ -26,7 +27,8 @@ export class DynamicsManager {
     // Remember best distance for song
     constructor(song : Song,screenShaker : ScreenShaker) {
         this.speed = 0;
-        this.speedLevelIdx = 0
+        this.score = 0;
+        this.scoreLevelIdx = 0
         this.speedLevelPercent = 0
         this.distance = 0;
         this.song = song
@@ -47,45 +49,45 @@ export class DynamicsManager {
     update() {
         // determine speed from thresholds 
         // at max?
-        if (levelThresholds[levelThresholds.length - 1] < this.speed) {
-            this.speedLevelIdx = levelThresholds.length - 1
+        if (levelThresholds[levelThresholds.length - 1] < this.score) {
+            this.scoreLevelIdx = levelThresholds.length - 1
         }
         for (let idx = 0; idx < levelThresholds.length - 1; idx++) {
-            if (this.speed > levelThresholds[idx] && this.speed < levelThresholds[idx + 1]) {
-                if (this.speedLevelIdx<idx)
+            if (this.score > levelThresholds[idx] && this.score < levelThresholds[idx + 1]) {
+                if (this.scoreLevelIdx<idx)
                 {
-                    this.speedLevelIdx = idx
+                    this.scoreLevelIdx = idx
                     this.screenshaker.shakeDuration =40
                     this.levelupsound.play()
                     // level up
                 }
-                this.speedLevelPercent = (this.speed - levelThresholds[idx]) / (levelThresholds[idx + 1] - levelThresholds[idx]);
+                this.speedLevelPercent = (this.score - levelThresholds[idx]) / (levelThresholds[idx + 1] - levelThresholds[idx]);
 
             }
         }
-        this.distance += this.speed  
-        if (this.speed>this.topSpeed) {
-            this.topSpeed = this.speed
-        }
-        this.levelThreshold = levelThresholds[this.speedLevelIdx]
+        //this.distance += this.speed  
+        // if (this.speed>this.topSpeed) {
+        //     this.topSpeed = this.speed
+        // }
+        this.levelThreshold = levelThresholds[this.scoreLevelIdx]
     }
     applyBooster()
     {
-        this.speed+=30
+        this.score+=30
     }
 
     hit() {
-        this.speed += 4 * this.song.e_cur; // accelerate more if energy is high
+        this.score += 4 * this.song.e_cur; // accelerate more if energy is high
         this.hitSFX.play()
     }
     falsePositive() {
         // make instruments red
         console.log("false")
         this.errorsound.play()
-        this.speed -= 0.05*(this.speed - levelThresholds[this.speedLevelIdx]);
+        this.score -= 0.05*(this.score - levelThresholds[this.scoreLevelIdx]);
     }
     falseNegsative() {
 
-        this.speed -= 0.05*(this.speed - levelThresholds[this.speedLevelIdx]);
+        this.score -= 0.05*(this.score - levelThresholds[this.scoreLevelIdx]);
     }
 }

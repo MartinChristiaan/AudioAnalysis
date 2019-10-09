@@ -19,7 +19,7 @@ export class rgb {
   }
 }
 
-const gradientColors = [new rgb(18, 194, 233), new rgb(196, 113, 237), new rgb(247, 157, 0), new rgb(100, 243, 140), new rgb(192, 36, 37), new rgb(240, 203, 53), new rgb(237, 33, 58), new rgb(147, 41, 30)]
+const gradientColors = [new rgb(18, 194, 233), new rgb(196, 113, 237), new rgb(247, 157, 0), new rgb(100, 243, 140), new rgb(240, 203, 53), new rgb(237, 33, 58), new rgb(147, 41, 30)]
 
 export function addRandomDeviation(color: rgb, dev = 20) {
   var r = Math.round(color.r + (Math.random() - 0.5) * dev)
@@ -39,12 +39,18 @@ export class NoteColorer {
   }
 
   getNoteColorRaw(percent:number) {
-    var idx = this.dynamicsManager.speedLevelIdx
+    var idx = this.dynamicsManager.scoreLevelIdx
 //    var percent2 = this.dynamicsManager.speedLevelPercent
 //    var collow = lerpColors(gradientColors[idx], gradientColors[idx + 1], percent2)
 //    var colhigh = lerpColors(gradientColors[idx + 1], gradientColors[idx + 2], percent2)
+    var col1 = gradientColors[idx]
+    var col2 = col1
+    if (idx+1 < gradientColors.length) {
+      col2 = gradientColors[idx+1]  
+    }
+    
 
-    var color = lerpColors(gradientColors[idx], gradientColors[idx+1], percent)
+    var color = lerpColors(col1, col2, percent)
     return color
   }
 

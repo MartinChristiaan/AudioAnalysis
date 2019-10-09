@@ -129,22 +129,26 @@ export class NoteParticle {
         this.TrailParticles = []
         this.color = this.noteColorer.getNoteColorRaw(this.t)
         this.livetimeAfterDead = 20
-        this.orbitParticles = Array.from({ length: orbitParticles }, (_, id) => {
-            return new OrbitParticle(10
-                , id * Math.PI * 2 / orbitParticles
-                , this.y, this.x
-                , 3
-                , addRandomDeviation(this.color, 100))
-
-        })
-
+        this.orbitParticles = []
 
     }
     update(state: number) {
         if (state != noteStates.DEAD) {
+            this.color = this.noteColorer.getNoteColorRaw(this.t)
+            if (this.orbitParticles.length == 0) {
+                this.orbitParticles =Array.from({ length: orbitParticles }, (_, id) => {
+                    return new OrbitParticle(10
+                        , id * Math.PI * 2 / orbitParticles
+                        , this.y, this.x
+                        , 3
+                        , addRandomDeviation(this.color, 100))
+        
+                })        
+            }
+            
             var percentTravelled = (this.t_onset - this.song.t_min) / (this.song.t_max - this.song.t_min);
             this.y = innerHeight - (percentTravelled * innerHeight);
-            this.color = this.noteColorer.getNoteColorRaw(this.t)
+
             
             //vy = speed?
             //vy = ds/dt -> innerheight/t_max-t_min

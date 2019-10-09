@@ -50,7 +50,6 @@ for src in tqdm(os.listdir(musicdir)):
     w = 1000
     e = np.convolve(e[0], np.append(np.zeros(w),np.ones(w)), 'same') / w
     e = scipy.signal.resample(e,C.shape[1])
-    
     t_onset = onset*(len(y)/sr)/C.shape[1]
     
     no_notes = 4
@@ -63,43 +62,25 @@ for src in tqdm(os.listdir(musicdir)):
 #%% write data to ts library
     
     
-def nparr_to_string(arr):
-    return "[" + ",".join([str(item) for item in arr]) + "]"
-        
-#items = [t_onset,f_onset,e]
-
-base_template = """
-export class SongData
-{
-    f_onset: number [];
-    e: number [];
-    t_onset: number[];
-    name : string;
-    constructor(f_onset : number [],t_onset: number [],e: number [], name : string)
-    {
-        this.f_onset = f_onset
-        this.t_onset = t_onset
-        this.e = e
-        this.name = name
-    }
-}
-export var songs =["""
-
-for (t_onset,f_onset,e,src)  in songdatas:
-    items = [f_onset,t_onset,e]
-    stringified = [nparr_to_string(item) for item in items]
-    base_template += "new SongData({},{},{},{})".format(stringified[0],stringified[1],stringified[2],"'"+src + "'")+ ","
+#%% write data to ts library
+def np_arr_to_str(arr):
+   return ",".join([str(item) for item in arr]) + "\n"
+  
     
-base_template = base_template[:-1]
-base_template+="]"
+#%%
+datadir =  "../data/"
+songdatadir = datadir+"songs/"   
+for (t_onset,f_onset,e,src)  in songdatas:
+    items = t_onset,f_onset,e
+    lines = [np_arr_to_str(item) for item in items]
+    f = open(songdatadir + src[:-4] + ".txt",'w')
+    f.writelines(lines)
+    f.close()
 
-
-
-
-f = open(datadir + "lib.ts",'w')
-f.writelines(base_template)
+availableSongs = [x + "\n" for x in os.listdir(songdatadir)]
+f = open(datadir + "available.txt",'w')
+f.writelines(availableSongs)
 f.close()
-
 
 
 

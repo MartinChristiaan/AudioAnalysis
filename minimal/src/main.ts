@@ -1,10 +1,10 @@
-import {songs, SongData} from './data/lib';
+import { SongData} from './data/lib';
 import { Song } from './song';
 import { DynamicsManager } from './dynamicsManager';
 import { HitDetection } from './hitDetection';
 import { NoteDrawer } from './noteDrawer';
 import { InstrumentDrawer } from './instrumentDrawer';
-import { ScoreDrawer } from "./ScoreDrawer";
+import { ScoreDrawer } from './ScoreDrawer';
 import { NoteColorer } from './colors';
 import { screenShaker } from './postprocessing';
 // canvas setup
@@ -16,7 +16,35 @@ canvas.height = innerHeight
 
 // custom setup
 
-var song = new Song(songs[Math.floor(Math.random() * songs.length)]) //random song
+function loadFile(filePath : string):string {
+    var result = null;
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.open("GET", filePath, false);
+    xmlhttp.send();
+    if (xmlhttp.status == 200) {
+        result = xmlhttp.responseText;
+    }
+    return result;
+}
+
+function convertToNumberArray(line:string)
+{
+    return line.split(',').map((x) => parseFloat(x))
+}
+var availableSongs = loadFile("../data/available.txt").split(/\r?\n/); // splits per line
+var chosenSong = availableSongs[1]//Math.floor(Math.random() * availableSongs.length)]
+var data = loadFile("../data/songs/" + chosenSong).split(/\r?\n/).map(convertToNumberArray)
+
+const songdata = {
+    t_onset : data[0],
+    f_onset :data[1],
+    e : data[2],
+    name : chosenSong.slice(0,chosenSong.length - 4) + ".mp3"
+};
+
+var song = new Song(songdata) //random song
+
+// start with song
 var dynamicsManager = new DynamicsManager(song,screenShaker)
 var noteColorer = new NoteColorer(dynamicsManager)
 var hitDetection = new HitDetection(song,dynamicsManager)
@@ -47,6 +75,7 @@ document.addEventListener('keydown', function (event) {
 });
 
 main()
+
 
 // TODO - 
 // Add boosters
