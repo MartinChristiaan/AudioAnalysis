@@ -5,11 +5,11 @@ import { NoteColorer } from './colors';
 export class NoteDrawer {
     song: Song;
     notePartles: NoteParticle[];
-    constructor(song: Song,ctx : CanvasRenderingContext2D,colorer : NoteColorer) {
-        this.song = song;
+    constructor(gear,ctx : CanvasRenderingContext2D,colorer : NoteColorer) {
+        
         this.notePartles = []
-        this.song.t_onset.forEach((time, idx, x) => {
-            this.notePartles.push(new NoteParticle(song, idx,ctx,colorer));
+        gear.t_onset.forEach((time, idx, x) => {
+            this.notePartles.push(new NoteParticle(gear, idx,ctx,colorer));
         });
     }
     update(noteStates : number[]) {

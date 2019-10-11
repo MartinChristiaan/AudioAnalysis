@@ -1,9 +1,10 @@
 import { Song } from './song';
 import { noteStates } from './hitDetection';
-import { maxNotes, orbitParticles } from './config';
+import {  orbitParticles } from './config';
 import { rgb, addRandomDeviation, NoteColorer } from './colors';
 import {  drawCircle } from './postprocessing';
 import {ctx} from './main'
+import { Gear } from './gearmanager';
 var decayFactor = 0.01
 var drag = 0.01
 class TrailParticle {
@@ -115,13 +116,12 @@ export class NoteParticle {
     orbitParticles: OrbitParticle[];
     livetimeAfterDead: number;
 
-    constructor(song: Song, idx: number, ctx: CanvasRenderingContext2D, noteColorer: NoteColorer) {
-        this.song = song;
-        this.t_onset = song.t_onset[idx]; // load from analyis  
-        var f_onset = song.f_onset[idx];
-        this.t = (f_onset + 1) / maxNotes;
+    constructor({f_onset,t_onset,numNotes} : Gear, idx: number, ctx: CanvasRenderingContext2D, noteColorer: NoteColorer) {
+        this.t_onset = t_onset[idx]; // load from analyis  
+        let myf_onset = f_onset[idx];
+        this.t = (myf_onset + 1) / numNotes;
 
-        this.x = (f_onset + .5) * innerWidth / (maxNotes);
+        this.x = (myf_onset + .5) * innerWidth / (numNotes);
         this.y = innerHeight;
         this.ctx = ctx
         this.noteColorer = noteColorer

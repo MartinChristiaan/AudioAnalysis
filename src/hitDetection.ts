@@ -18,7 +18,7 @@ export class HitDetection {
     song: Song;
     scoremanager: DynamicsManager;
 
-    constructor(song: Song, scoremanager: DynamicsManager) {
+    constructor(gear: Gear, scoremanager: DynamicsManager) {
         this.noteStates = new Array(song.t_onset.length).fill(noteStates.DEAD);
         
         this.activeNotes = new Array(maxNotes).fill(0);

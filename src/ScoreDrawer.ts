@@ -61,19 +61,18 @@ export class ScoreDrawer {
             ,this.song.duration
             ,150,50,200,25,20)
 
-
         this.drawProgressBar(this.scoreManager.score
-            ,this.scoreManager.levelThreshold
-            ,levelThresholds[this.scoreManager.scoreLevelIdx+1]
+            ,this.scoreManager.level*10
+            ,this.scoreManager.level*10+10
             ,150,100,200,25,20)
 
         this.drawProgressBar(this.song.e_cur
             ,0
             ,1
             ,150,150,200,25,20)
-    
-            
-        //this.ctx.strokeText("speed : "  + this.scoreManager.speed.toFixed(2) + " : " +  levelThresholds[this.scoreManager.speedLevelIdx + 1].toString(), 100, 100);
+        
+               
+        this.ctx.strokeText(this.scoreManager.level + "x", 100, 200);
 //        this.ctx.strokeText("distance : " +  this.scoreManager.distance.toFixed(2), 100, 150);
         //this.ctx.strokeText("energy ; " +  this.song.e_cur.toFixed(2), 100, 200);
 

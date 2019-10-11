@@ -39,7 +39,7 @@ export class NoteColorer {
   }
 
   getNoteColorRaw(percent:number) {
-    var idx = this.dynamicsManager.scoreLevelIdx
+    var idx = this.dynamicsManager.level
 //    var percent2 = this.dynamicsManager.speedLevelPercent
 //    var collow = lerpColors(gradientColors[idx], gradientColors[idx + 1], percent2)
 //    var colhigh = lerpColors(gradientColors[idx + 1], gradientColors[idx + 2], percent2)

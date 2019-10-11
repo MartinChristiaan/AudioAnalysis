@@ -1,7 +1,7 @@
 import { Song } from "./song";
-import { maxNotes } from "./config";
 import { NoteColorer } from "./colors";
 import { lineTo,moveTo } from "./postprocessing";
+import { Gear } from "./gearmanager";
 export class InstrumentDrawer {
     ctx: CanvasRenderingContext2D;
     song: Song;
@@ -11,13 +11,13 @@ export class InstrumentDrawer {
         this.ctx = ctx
         this.noteColoror =colorizer
     }
-    update(ActiveNotes: number[]) {
+    update(ActiveNotes: number[],{numNotes}:Gear) {
         var song = this.song
         var ctx = this.ctx
         var y_now = (1 - (song.t_cur - song.t_min) / (song.t_max - song.t_min)) * innerHeight;
-        for (let f = 0; f < maxNotes ; f++) {
-            var x_start = (f) / (maxNotes ) * innerWidth
-            var x_stop = (f + 1) / (maxNotes) * innerWidth
+        for (let f = 0; f < numNotes ; f++) {
+            var x_start = (f) / (numNotes ) * innerWidth
+            var x_stop = (f + 1) / (numNotes) * innerWidth
  
             //console.log(x_stop)
             ctx.beginPath();
@@ -33,7 +33,7 @@ export class InstrumentDrawer {
             }
             else {
                 ctx.filter = "none"
-                ctx.strokeStyle = this.noteColoror.getNoteColor((f + 1) / maxNotes)
+                ctx.strokeStyle = this.noteColoror.getNoteColor((f + 1) / numNotes)
             }
             moveTo(x_start, y_now)
             lineTo(x_stop, y_now)
