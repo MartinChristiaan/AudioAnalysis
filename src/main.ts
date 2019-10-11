@@ -9,7 +9,10 @@ import { NoteColorer } from './colors';
 import { screenShaker } from './postprocessing';
 import { loadSongData } from './loader';
 import { GearBox } from './gearmanager';
+import { load } from './inputHandler';
+
 // canvas setup
+console.log("Starting")
 console.time('Initialization');
 var canvas = document.querySelector('canvas')
 export var ctx = canvas.getContext('2d')
@@ -19,20 +22,16 @@ canvas.height = innerHeight
 // custom setup
 
 let songdata = loadSongData()
-let song = new Song(songdata)
-var dynamicsManager = new DynamicsManager(song, screenShaker)
-var noteColorer = new NoteColorer(dynamicsManager)
-var hitDetection = new HitDetection(song, dynamicsManager)
+export var song = new Song(songdata)
 
+export var dynamicsManager = new DynamicsManager(song, screenShaker)
+export var noteColorer = new NoteColorer(dynamicsManager)
+export var hitDetection = new HitDetection(dynamicsManager)
+export var gearbox = new GearBox(songdata)
 
-let gearbox = new GearBox(songdata)
-
-// start with song
-
-var noteDrawer = new NoteDrawer(song, ctx, noteColorer)
-var instrumentDrawer = new InstrumentDrawer(song, ctx, noteColorer)
-var scoreDrawer = new ScoreDrawer(ctx, dynamicsManager, song)
-
+export var noteDrawer = new NoteDrawer()
+export var instrumentDrawer = new InstrumentDrawer(song, ctx, noteColorer)
+export var scoreDrawer = new ScoreDrawer(ctx, dynamicsManager, song)
 
 
 console.timeEnd('Initialization');
@@ -42,24 +41,20 @@ function main() {
     dynamicsManager.update()
     var speed = dynamicsManager.speed
     song.update(speed)
-    hitDetection.detectHits()
-    noteDrawer.update(hitDetection.noteStates)
+    noteDrawer.update(gearbox.curGear,song)
+    hitDetection.detectHits(noteDrawer.visibleNotes,song)
     instrumentDrawer.update(hitDetection.activeNotes,gearbox.curGear)
     scoreDrawer.drawScore()
     screenShaker.update()
     window.requestAnimationFrame(main);
 }
 
-document.addEventListener('keydown', function (event) {
-    var key = event.key;
-    if (key == 'spacebar') {
-        dynamicsManager.applyBooster()
-    }
-    hitDetection.updateKey(key)
-});
+
+
+
 
 main()
-
+console.log(load)
 
 // TODO - 
 // Add boosters

@@ -43,13 +43,15 @@ export class NoteColorer {
 //    var percent2 = this.dynamicsManager.speedLevelPercent
 //    var collow = lerpColors(gradientColors[idx], gradientColors[idx + 1], percent2)
 //    var colhigh = lerpColors(gradientColors[idx + 1], gradientColors[idx + 2], percent2)
+    //console.log(idx)
+    
     var col1 = gradientColors[idx]
     var col2 = col1
     if (idx+1 < gradientColors.length) {
       col2 = gradientColors[idx+1]  
     }
     
-
+    
     var color = lerpColors(col1, col2, percent)
     return color
   }

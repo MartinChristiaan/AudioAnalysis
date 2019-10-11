@@ -42,7 +42,7 @@ export class DynamicsManager {
         if (this.level<newLevel) {
             this.levelUp()      
         }
-        this.level = newLevel
+        this.level = Math.max(0,newLevel)
         this.speedLevelPercent = this.multiplierScore/10%1
         
     }

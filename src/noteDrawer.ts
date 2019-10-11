@@ -1,23 +1,31 @@
 import { Song } from './song';
-import { NoteParticle } from "./noteParticle";
+import { Note } from "./noteParticle";
 import { NoteColorer } from './colors';
+import { Gear } from './gearmanager';
+import { NoteState } from './hitDetection';
 
 export class NoteDrawer {
-    song: Song;
-    notePartles: NoteParticle[];
-    constructor(gear,ctx : CanvasRenderingContext2D,colorer : NoteColorer) {
-        
-        this.notePartles = []
-        gear.t_onset.forEach((time, idx, x) => {
-            this.notePartles.push(new NoteParticle(gear, idx,ctx,colorer));
-        });
+    
+    visibleNotes: Note[] = [];
+    spawnedIDX : number = -1
+    constructor() {
     }
-    update(noteStates : number[]) {
-        noteStates.forEach((state, idx) => {
-            if(this.notePartles[idx].update(state))
-            {
-                noteStates[idx] = 4
+    shiftGear(gear:Gear,song:Song)
+    {
+
+        this.visibleNotes.forEach((x,idx,_) => x.changeGear(song,gear))
+    }
+
+    update(gear:Gear,song :Song) {
+        song.visibleIdx.forEach( idx=>{
+            if (idx > this.spawnedIDX) {
+                this.spawnedIDX = idx 
+                this.visibleNotes.push(new Note(song,gear, idx))   
             }
-        });
+        })
+            
+        this.visibleNotes.forEach(note => {note.update()})
+        this.visibleNotes = this.visibleNotes.filter(note => note.state != NoteState.DEAD)     
+       
     }
 }

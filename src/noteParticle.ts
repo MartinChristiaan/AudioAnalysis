@@ -1,9 +1,9 @@
 import { Song } from './song';
-import { noteStates } from './hitDetection';
+import { NoteState } from './hitDetection';
 import {  orbitParticles } from './config';
 import { rgb, addRandomDeviation, NoteColorer } from './colors';
 import {  drawCircle } from './postprocessing';
-import {ctx} from './main'
+import {ctx, noteColorer} from './main'
 import { Gear } from './gearmanager';
 var decayFactor = 0.01
 var drag = 0.01
@@ -14,10 +14,9 @@ class TrailParticle {
     y: any;
     alpha: number;
     size: number;
-    ctx: CanvasRenderingContext2D;
     color: string;
 
-    constructor(x: any, y: any, vy: any, ctx: CanvasRenderingContext2D, color: string) {
+    constructor(x: any, y: any, vy: any, color: string) {
         this.color = color
         this.vy = vy
         this.vx = (Math.random() - 0.5) * 100// random
@@ -25,7 +24,6 @@ class TrailParticle {
         this.y = y - 20
         this.alpha = Math.random() * 1 // random
         this.size = Math.random() * 3 //random ...
-        this.ctx = ctx
 
     }
     update(dt) {
@@ -40,17 +38,17 @@ class TrailParticle {
         this.alpha -= decayFactor
     }
     draw() {
-        this.ctx.beginPath();
-        this.ctx.globalAlpha = this.alpha
+        ctx.beginPath();
+        ctx.globalAlpha = this.alpha
         drawCircle(this.x,this.y,this.size)
-        //this.ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+        //ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
         // draw decaying circle at my position
 
-        this.ctx.fillStyle = this.color
+        ctx.fillStyle = this.color
 
-        this.ctx.fill();
-        this.ctx.restore();
-        this.ctx.globalAlpha = 1
+        ctx.fill();
+        ctx.restore();
+        ctx.globalAlpha = 1
 
     }
 
@@ -71,8 +69,8 @@ export class OrbitParticle {
         this.color = color
         this.size = size
     }
-    update(y) {
-
+    update(x,y) {
+        this.x =x
         this.y = y
         this.angle += Math.PI * 0.01 // slowly rotate
         this.draw()
@@ -84,6 +82,7 @@ export class OrbitParticle {
         this.draw()
     }
     draw() {
+        //console.log("drawing orbitprtcl")
         ctx.beginPath();
         var x = this.x + Math.cos(this.angle) * this.r
         var y = this.y + Math.sin(this.angle) * this.r
@@ -97,44 +96,58 @@ export class OrbitParticle {
         ctx.restore();
     }
 
-
-
 }
 
 
-export class NoteParticle {
+export class Note {
     song: Song;
     t_onset: number;
+    state : NoteState
     x: number;
+    frequencyIdx:number
     y: number;
     t: number;
-    ctx: CanvasRenderingContext2D;
     alpha: number;
     TrailParticles: TrailParticle[];
     color: rgb;
-    noteColorer: NoteColorer;
     orbitParticles: OrbitParticle[];
-    livetimeAfterDead: number;
+    livetimeAfterDead: number;    
+    idx: number;
+ 
+    constructor(song : Song,gear : Gear, idx: number) {
+        this.t_onset = song.t_onset[idx]; // load from analyis  
+        let myf_onset = song.f_onset[idx];
+        this.state= NoteState.ALIVE
 
-    constructor({f_onset,t_onset,numNotes} : Gear, idx: number, ctx: CanvasRenderingContext2D, noteColorer: NoteColorer) {
-        this.t_onset = t_onset[idx]; // load from analyis  
-        let myf_onset = f_onset[idx];
-        this.t = (myf_onset + 1) / numNotes;
-
-        this.x = (myf_onset + .5) * innerWidth / (numNotes);
+        this.song = song
         this.y = innerHeight;
-        this.ctx = ctx
-        this.noteColorer = noteColorer
         this.alpha = 1
         this.TrailParticles = []
-        this.color = this.noteColorer.getNoteColorRaw(this.t)
+        this.color = noteColorer.getNoteColorRaw(this.t)
         this.livetimeAfterDead = 20
         this.orbitParticles = []
+        this.idx= idx
+        this.changeGear(song,gear)
+        
 
     }
-    update(state: number) {
-        if (state != noteStates.DEAD) {
-            this.color = this.noteColorer.getNoteColorRaw(this.t)
+    changeGear({f_onset,maxFreq}:Song,{numNotes,downSample} : Gear)
+    {
+        if (this.idx % downSample !==0 ) {
+            this.state = NoteState.HIT
+        }
+        let myf_onset = f_onset[this.idx];
+        this.frequencyIdx = Math.round(myf_onset/maxFreq *numNotes)
+        this.t = (this.frequencyIdx + 1) / numNotes;
+        this.x = (this.frequencyIdx + .5) * innerWidth / (numNotes);
+        this.color = noteColorer.getNoteColorRaw(this.t)
+    }
+    update() {
+            
+            var percentTravelled = (this.t_onset - this.song.t_min) / (this.song.t_max - this.song.t_min);
+        this.y = innerHeight - (percentTravelled * innerHeight);
+
+            this.color = noteColorer.getNoteColorRaw(this.t)
             if (this.orbitParticles.length == 0) {
                 this.orbitParticles =Array.from({ length: orbitParticles }, (_, id) => {
                     return new OrbitParticle(10
@@ -145,18 +158,16 @@ export class NoteParticle {
         
                 })        
             }
-            
-            var percentTravelled = (this.t_onset - this.song.t_min) / (this.song.t_max - this.song.t_min);
-            this.y = innerHeight - (percentTravelled * innerHeight);
+            //console.log(this.orbitParticles)
 
             
             //vy = speed?
             //vy = ds/dt -> innerheight/t_max-t_min
-            if (state == noteStates.ALIVE) {
+            if (this.state == NoteState.ALIVE) {
                 if (Math.random() < 0.25) {
                     this.TrailParticles.push(
                         new TrailParticle(this.x, this.y, innerHeight / (this.song.t_max - this.song.t_min)
-                            , this.ctx, addRandomDeviation(this.color, 20).getHTMLValue()))
+                            , addRandomDeviation(this.color, 20).getHTMLValue()))
                 }
             }
 
@@ -165,57 +176,43 @@ export class NoteParticle {
                     p.update(0.016)
                 }
             });
-            return this.draw(state);
+            this.draw();
         }
 
-        // this.TrailParticles.push(new TrailParticle())
-        // this.TrailParticles.forEach(particle => {
-        //     particle.update(dt)
-        // });
-        // remove dead particles
-        // get position
-        // draw circle at position
-        // spawn particle
-        // if below t_min, die
-    }
-    draw(state: number) {
+        
+    
+    draw() {
 
-
-        if (state == noteStates.ALIVE) {
-            this.orbitParticles.forEach(x => { x.update(this.y) })
+        let state =this.state
+        if (state == NoteState.ALIVE) {
+            this.orbitParticles.forEach(x => { x.update(this.x,this.y) })
 
         }
-        else if (state == noteStates.HIT) {
+        else if (state == NoteState.HIT) {
             this.orbitParticles.forEach(x => { x.updateExplode() })
             this.livetimeAfterDead-=1
             if (this.livetimeAfterDead==0) {
-                return true
+                this.state = NoteState.DEAD
             }
-            // // fade
-            // this.alpha-=0.1
-            // if (this.alpha<0) {
-            //     this.alpha = 0
-            // }
-            // this.ctx.globalAlpha = this.alpha
-            // this.ctx.fillStyle = this.noteColorer.getNoteColor(this.t);
-            // EXPLODE!            
 
         }
-        else if (state == noteStates.MISS) {
-            this.ctx.beginPath();
-            this.ctx.fillStyle = "red";
-            //this.ctx.arc(this.x, this.y, 12, 0, Math.PI * 2, false);
+        else if (state == NoteState.MISS) {
+            ctx.beginPath();
+            ctx.fillStyle = "red";
+            //ctx.arc(this.x, this.y, 12, 0, Math.PI * 2, false);
             drawCircle(this.x,this.y,12)
-            this.ctx.fill();
-            this.ctx.restore();
+            ctx.fill();
+            ctx.restore();
+            if (this.y < 0) {
+                this.state = NoteState.DEAD                
+            }
 
 
             // lerp to red/orange
             // add orange trial
         }
-        return false
 
-        //        this.ctx.globalAlpha = 1
+        //        ctx.globalAlpha = 1
 
     }
 }

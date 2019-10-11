@@ -4,6 +4,7 @@ import { ctx } from "./main";
 export const screenShaker = new ScreenShaker()
 export function drawCircle(x,y,r)
 {
+  //  console.log("Drawing circle at " + x + " " + y)
     ctx.arc(x+screenShaker.x, y+screenShaker.y, r, 0, Math.PI * 2, false);
 }
 export function drawRect(x,y,w,h)

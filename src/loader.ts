@@ -16,7 +16,7 @@ function convertToNumberArray(line: string) {
 }
 export function loadSongData() {
     var availableSongs = loadFile("../data/available.txt").split(/\r?\n/); // splits per line
-    var chosenSong = availableSongs[1]//Math.floor(Math.random() * availableSongs.length)]
+    var chosenSong = availableSongs[Math.floor(Math.random() * availableSongs.length)]//
     var data = loadFile("../data/songs/" + chosenSong).split(/\r?\n/).map(convertToNumberArray)
 
     const songdata = {
