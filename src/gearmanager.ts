@@ -46,12 +46,7 @@ export class Gear
         this.visibleIdx = []
         this.score_mult = numNotes * speed
     }
-    update({t_cur,delta}:Song)
-    {
 
-   
-    }
-    
 
 
 }

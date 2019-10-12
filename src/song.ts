@@ -22,7 +22,7 @@ export class Song
         this.sound =new Howl({
             src: ['../music/' + data.name]
           });
-        //this.sound.volume(0)
+        this.sound.volume(0)
         this.sound.play()
         this.duration = this.sound.duration()
           

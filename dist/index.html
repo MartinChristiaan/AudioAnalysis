@@ -9,12 +9,40 @@
       {
         background-color: black !important;        
       }
+      #container {
+         display: flex;
+         background-color: aqua; /* or inline-flex */
+         position: absolute;
+         width: 100%;
+         height: 100%;
+            }
+      #control{
+        background-color:white;
+        width: 30%
+      }
+      #canvasdiv
+      {
+        background-color:black;
+        width: 70%
+      }
       </style>
 
 </head>
 
 <body id="main">
-  <canvas></canvas>
+  <div id="container">
+    
+    <div id="canvasdiv">
+      <canvas></canvas>
+    </div>
+    <div id = "control">
+        <canvas id="EnergyChart" width="100%"></canvas>
+        <canvas id="ComplexityChart" width="100%"></canvas>
+        
+    </div>
+
+  </div>
+
 
   <script type="module" src="bundle.js"></script>
 

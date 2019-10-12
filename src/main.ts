@@ -10,14 +10,15 @@ import { screenShaker } from './postprocessing';
 import { loadSongData } from './loader';
 import { GearBox } from './gearmanager';
 import { load } from './inputHandler';
+import { loadEnergyChart } from './charts/charts';
 
 // canvas setup
 console.log("Starting")
 console.time('Initialization');
-var canvas = document.querySelector('canvas')
-export var ctx = canvas.getContext('2d')
-canvas.width = innerWidth
+export var canvas = document.querySelector('canvas')
 canvas.height = innerHeight
+canvas.width= document.getElementById("canvasdiv").clientWidth
+export var ctx = canvas.getContext('2d')
 
 // custom setup
 
@@ -33,6 +34,7 @@ export var noteDrawer = new NoteDrawer()
 export var instrumentDrawer = new InstrumentDrawer(song, ctx, noteColorer)
 export var scoreDrawer = new ScoreDrawer(ctx, dynamicsManager, song)
 
+loadEnergyChart(song.e)
 
 console.timeEnd('Initialization');
 

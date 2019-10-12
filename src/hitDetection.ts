@@ -39,8 +39,7 @@ export class HitDetection {
 
             if (note.state == NoteState.ALIVE) {
                 if (t_cur > t_min && t_cur < t_max) {
-                    console.log(note.frequencyIdx)
-                    if (this.activeNotes[note.frequencyIdx] > 0) { // right button hit
+                     if (this.activeNotes[note.frequencyIdx] > 0) { // right button hit
                         note.state = NoteState.HIT; // hit
                         this.scoremanager.hit(); //+=activeNotes[parseInt(f_onset[idx])]
                         this.activeNotesHits[note.frequencyIdx] = 1

@@ -47,8 +47,8 @@ for src in tqdm(os.listdir(musicdir)):
    
 
     e = librosa.feature.rms(y)
-    w = 1000
-    e = np.convolve(e[0], np.append(np.zeros(w),np.ones(w)), 'same') / w
+    w = 50
+    e = np.convolve(e[0], np.ones(w), 'full' )/ w
     e = scipy.signal.resample(e,C.shape[1])
     t_onset = onset*(len(y)/sr)/C.shape[1]
     

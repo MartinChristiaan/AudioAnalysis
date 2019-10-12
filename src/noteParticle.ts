@@ -3,7 +3,7 @@ import { NoteState } from './hitDetection';
 import {  orbitParticles } from './config';
 import { rgb, addRandomDeviation, NoteColorer } from './colors';
 import {  drawCircle } from './postprocessing';
-import {ctx, noteColorer} from './main'
+import {ctx, noteColorer, canvas} from './main'
 import { Gear } from './gearmanager';
 var decayFactor = 0.01
 var drag = 0.01
@@ -139,7 +139,7 @@ export class Note {
         let myf_onset = f_onset[this.idx];
         this.frequencyIdx = Math.round(myf_onset/maxFreq *numNotes)
         this.t = (this.frequencyIdx + 1) / numNotes;
-        this.x = (this.frequencyIdx + .5) * innerWidth / (numNotes);
+        this.x = (this.frequencyIdx + .5) * canvas.width / (numNotes);
         this.color = noteColorer.getNoteColorRaw(this.t)
     }
     update() {

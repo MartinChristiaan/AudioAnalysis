@@ -2,6 +2,7 @@ import { Song } from "./song";
 import { NoteColorer } from "./colors";
 import { lineTo,moveTo } from "./postprocessing";
 import { Gear } from "./gearmanager";
+import { canvas } from "./main";
 export class InstrumentDrawer {
     ctx: CanvasRenderingContext2D;
     song: Song;
@@ -16,8 +17,8 @@ export class InstrumentDrawer {
         var ctx = this.ctx
         var y_now = (1 - (song.t_cur - song.t_min) / (song.t_max - song.t_min)) * innerHeight;
         for (let f = 0; f < numNotes ; f++) {
-            var x_start = (f) / (numNotes ) * innerWidth
-            var x_stop = (f + 1) / (numNotes) * innerWidth
+            var x_start = (f) / (numNotes ) * canvas.width
+            var x_stop = (f + 1) / (numNotes) * canvas.width
  
             //console.log(x_stop)
             ctx.beginPath();
