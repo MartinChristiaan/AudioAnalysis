@@ -61,6 +61,7 @@ export class OrbitParticle {
     x: number;
     color: rgb;
     size: number;
+    isbuildup : boolean
     constructor(r: number, angle: number, y: number, x: number, size: number, color: rgb) {
         this.r = r
         this.angle = angle
@@ -68,6 +69,7 @@ export class OrbitParticle {
         this.x = x
         this.color = color
         this.size = size
+
     }
     update(x,y) {
         this.x =x
@@ -113,6 +115,7 @@ export class Note {
     orbitParticles: OrbitParticle[];
     livetimeAfterDead: number;    
     idx: number;
+    isBuildUp: boolean;
  
     constructor(song : Song,gear : Gear, idx: number) {
         this.t_onset = song.t_onset[idx]; // load from analyis  
@@ -128,7 +131,7 @@ export class Note {
         this.orbitParticles = []
         this.idx= idx
         this.changeGear(song,gear)
-        
+        this.isBuildUp = song.buildupOnsets.includes[idx]
 
     }
     changeGear({f_onset,maxFreq}:Song,{numNotes,downSample} : Gear)
@@ -153,7 +156,7 @@ export class Note {
                     return new OrbitParticle(10
                         , id * Math.PI * 2 / orbitParticles
                         , this.y, this.x
-                        , 3
+                        , this.isBuildUp?5:3
                         , addRandomDeviation(this.color, 100))
         
                 })        

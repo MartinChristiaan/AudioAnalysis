@@ -23,6 +23,7 @@ export function loadSongData() {
         t_onset: data[0],
         f_onset: data[1],
         e: data[2],
+        buildupOnsets:data[3],
         name: chosenSong.slice(0, chosenSong.length - 4) + ".mp3"
     };
 

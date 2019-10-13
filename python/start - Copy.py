@@ -2,6 +2,7 @@ import warnings
 with warnings.catch_warnings():  
     warnings.filterwarnings("ignore",category=FutureWarning)
 import logging
+import scipy.signal as sig
 log = logging.getLogger('werkzeug')
 import os           
 import librosa        
@@ -19,7 +20,7 @@ from tqdm import tqdm
 songdatas = []
 
 
-src = os.listdir(musicdir)[1]
+src = os.listdir(musicdir)[4]
 dst = src[:-4] +".wav"
  
 print(musicdir+ src)
@@ -43,7 +44,8 @@ print("tempo")
 tempo, frames = librosa.beat.beat_track(y=y,sr=sr)
 print("onset")
 onset = librosa.onset.onset_detect(y,sr)
-#%%
+
+
 combined = np.unique(np.append(onset,frames))
 #onset = 
 #onset.sort()
@@ -51,74 +53,92 @@ combined = np.unique(np.append(onset,frames))
    
 
 e = librosa.feature.rms(y)
-w = 50
-e_valid = np.convolve(e[0],np.append(np.zeros(w), np.ones(w)), 'full') / w
+w = 60
+
+
 e_full = np.convolve(e[0], np.ones(w), 'full') / w
-
-
-
-e_valid = scipy.signal.resample(e_valid,C.shape[1])
 e_full = scipy.signal.resample(e_full,C.shape[1])
-
 t_onset = onset*(len(y)/sr)/C.shape[1]
-
-
 no_notes = 4
 t = np.linspace(0,len(y)/sr,C.shape[1])
-
 f_onset = np.argmax(C[:,onset],axis=0)
 
 
+
+
+#plt.plot(t,e_full)
+
+e_n = e_full/e_full.max()
+peaks,_ = sig.find_peaks(e_n,0.80,distance = 400)
+peak_onsets = []
+distances = []
+
+for i,peak in enumerate(peaks):
+    myOnsets = []
+    myValue = e_n[peak]
+    possibe_onsets = onset[onset<peak]
+    decreasing = True
+    idx = -1
+    while (decreasing):
+        myonset = possibe_onsets[idx]
+        
+        if e_n[myonset]  < myValue + .05:
+            myOnsets+=[myonset]
+            if e_n[myonset]  < myValue:
+                myValue = e_n[myonset]
+        else:
+            decreasing = False
+        # if I have not decreased that much move make me new peak
+            
+        idx-=1
+            
+        
+    highestEnergyOnset = e_n[myOnsets].max()
+    final_onsets = []
+    stopped = False
+    for ons in myOnsets[::-1]:
+        if not stopped:
+            final_onsets.append(ons)
+            if e_n[ons] > e_n[peak] - 0.02:
+                stopped = True
+    
+    peak_onsets+=[final_onsets]
+    distances += [e_n[peak] - myValue]
+
+
+
+distances = np.array(distances)
+
+
+idx = np.arange(len(distances),dtype = int)[distances>0.25]
+peaks = peaks[idx]
+peak_onsets_new = []
+for i in idx:
+    peak_onsets_new += [peak_onsets[i]]
+    
 plt.figure()
-plt.plot(t,e_valid)
-plt.plot(t,e_full)
-plt.plot(t[onset],e_valid[onset] , "x")
-plt.plot(t[onset],e_full[onset] , "x")
+plt.plot(t,e_n)
+plt.plot(t[peaks],e_n[peaks],"o")
+
+
+for po in peak_onsets_new:
+    plt.plot(t[po],e_n[po],"x")
+
 
 plt.show()
 
+#e_onset = e_full[onset]
 
-
-
-#%%songdatas += [(t_onset,f_onset,e,src)]
-
-
-
-
-
-
-#%%
-
-
-#f_onset = np.round(f_onset/np.max(f_onset) * (no_notes-1)) // done in js
-
-#%% write data to ts library
-    
-    
-#%% write data to ts library
-def np_arr_to_str(arr):
-   return ",".join([str(item) for item in arr]) + "\n"
-  
-    
-#%%
-datadir =  "../data/"
-songdatadir = datadir+"songs/"   
-for (t_onset,f_onset,e,src)  in songdatas:
-    items = t_onset,f_onset,e
-    lines = [np_arr_to_str(item) for item in items]
-    f = open(songdatadir + src[:-4] + ".txt",'w')
-    f.writelines(lines)
-    f.close()
-
-availableSongs = [x + "\n" for x in os.listdir(songdatadir)]
-f = open(datadir + "available.txt",'w')
-f.writelines(availableSongs)
-f.close()
+# find peaks in energy
+# get highest peaks
+# select nodes leading up to it
 
 
 
 
 
-#lines =[nparr_to_string(item) + "\n" for item in items]
+
+
+
 
 

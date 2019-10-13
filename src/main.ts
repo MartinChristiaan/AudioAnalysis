@@ -10,7 +10,7 @@ import { screenShaker } from './postprocessing';
 import { loadSongData } from './loader';
 import { GearBox } from './gearmanager';
 import { load } from './inputHandler';
-import { loadEnergyChart } from './charts/charts';
+import {UpdatingChart} from './charts/charts'
 
 // canvas setup
 console.log("Starting")
@@ -34,7 +34,7 @@ export var noteDrawer = new NoteDrawer()
 export var instrumentDrawer = new InstrumentDrawer(song, ctx, noteColorer)
 export var scoreDrawer = new ScoreDrawer(ctx, dynamicsManager, song)
 
-loadEnergyChart(song.e)
+let energyChart = new UpdatingChart(song.e)
 
 console.timeEnd('Initialization');
 
@@ -48,6 +48,7 @@ function main() {
     instrumentDrawer.update(hitDetection.activeNotes,gearbox.curGear)
     scoreDrawer.drawScore()
     screenShaker.update()
+    energyChart.UpdateData(Math.round(song.t_cur/song.duration * song.e.length))
     window.requestAnimationFrame(main);
 }
 

@@ -16,16 +16,17 @@ export class Song
     f_onset:number[] = []
     t_onset:number[] =  []
     maxFreq:number = 11
+    buildupOnsets : number[]
 
     constructor(data:SongData)
     {
         this.sound =new Howl({
             src: ['../music/' + data.name]
           });
-        this.sound.volume(0)
+        //this.sound.volume(0)
         this.sound.play()
         this.duration = this.sound.duration()
-          
+        this.buildupOnsets = data.buildupOnsets
 
 
         // var max = Math.max(...data.f_onset)

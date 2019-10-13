@@ -1,7 +1,7 @@
 // 
 //export var maxNotes = 4;
 
-
+export var chartDelta = 500
 export var keycodes = 
     {   
         2 : ["a","j"],
