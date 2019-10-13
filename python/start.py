@@ -14,13 +14,14 @@ import scipy.signal as sig
 datadir = "../src/data/"
 musicdir = "../music/"
 from tqdm import tqdm
+from multiprocessing import Pool
 
 #%%
 
 songdatas = []
 
-
-for src in tqdm(os.listdir(musicdir)):
+srcs = os.listdir(musicdir)
+def process(src):
     dst = src[:-4] +".wav"
  
     #print(musicdir+ src)
@@ -48,20 +49,17 @@ for src in tqdm(os.listdir(musicdir)):
    
 
     e = librosa.feature.rms(y)
+   
     w = 60
     
     
     e_full = np.convolve(e[0], np.ones(w), 'full') / w
     e_full = scipy.signal.resample(e_full,C.shape[1])
     t_onset = onset*(len(y)/sr)/C.shape[1]
-    no_notes = 4
+
     t = np.linspace(0,len(y)/sr,C.shape[1])
     f_onset = np.argmax(C[:,onset],axis=0)
     
-    
-    
-    
-    #plt.plot(t,e_full)
     
     e_n = e_full/e_full.max()
     peaks,_ = sig.find_peaks(e_n,0.80,distance = 400)
@@ -88,7 +86,7 @@ for src in tqdm(os.listdir(musicdir)):
             idx-=1
                 
             
-        highestEnergyOnset = e_n[myOnsets].max()
+      
         final_onsets = []
         stopped = False
         for ons in myOnsets[::-1]:
@@ -97,8 +95,8 @@ for src in tqdm(os.listdir(musicdir)):
                 if e_n[ons] > e_n[peak] - 0.02:
                     stopped = True
     
-    peak_onsets+=[final_onsets]
-    distances += [e_n[peak] - myValue]
+        peak_onsets+=[final_onsets]
+        distances += [e_n[peak] - myValue]
 
 
 
@@ -107,17 +105,25 @@ for src in tqdm(os.listdir(musicdir)):
     
     idx = np.arange(len(distances),dtype = int)[distances>0.25]
     peaks = peaks[idx]
-    peak_onsets_new = []
+    buildups_onset = []
+    buildups_e = []
     for i in idx:
         for ons in peak_onsets[i]:
-            peak_onsets_new += [ons]
+            buildups_onset+= [np.where(onset == ons)[0][0]]
+            buildups_e += [ons]
     
         
-    songdatas += [(t_onset,f_onset,e,peak_onsets_new,src)]
+    return (t_onset,f_onset,e_full,buildups_onset,buildups_e,src)
         #f_onset = np.round(f_onset/np.max(f_onset) * (no_notes-1)) // done in js
 
 #%% write data to ts library
-    
+import time
+if __name__ == '__main__':
+    start = time.time()
+    print("Starting")
+    p = Pool(6)
+    songdatas = p.map(process, srcs)
+    print("Time Taken {} " .format(time.time()-start))
     
 #%% write data to ts library
 def np_arr_to_str(arr):
@@ -127,8 +133,8 @@ def np_arr_to_str(arr):
 #%%
 datadir =  "../data/"
 songdatadir = datadir+"songs/"   
-for (t_onset,f_onset,e,peak_onsets_new,src)  in songdatas:
-    items = t_onset,f_onset,e,peak_onsets_new
+for (t_onset,f_onset,e,buildups_onset,buildups_e,src)  in songdatas:
+    items = t_onset,f_onset,e,buildups_onset,buildups_e
     lines = [np_arr_to_str(item) for item in items]
     f = open(songdatadir + src[:-4] + ".txt",'w')
     f.writelines(lines)

@@ -11,10 +11,18 @@ export function getData(curIdx, data: number[]) {
 }
 
 
-function alternatePointRadius(ctx,curIdx) {
+function alternatePointRadius(ctx,curIdx,highligths) {
     var index = ctx.dataIndex;
-    
-    return index === curIdx ? '4' : '0';
+ 
+    if (index === curIdx) {
+        return '4'
+    }
+    else if (highligths.includes(index))
+    {
+        //console.log("highlight")
+        return '3'
+    }
+    return 0
 }
 
 
@@ -23,7 +31,8 @@ export class UpdatingChart {
     fullData: number[];
     chart: Chart;
     curIdx :number = 0
-    constructor(fullData: number[]) {
+    highlights: number[];
+    constructor(fullData: number[],highligths:number[]) {
 
         this.fullData = fullData
         var ctx = (document.getElementById('EnergyChart') as HTMLCanvasElement).getContext('2d');
@@ -34,8 +43,7 @@ export class UpdatingChart {
 
         Chart.defaults.global.elements.line.fill = false;
         Chart.defaults.global.animation = false;
-
-
+        this.highlights = highligths
         this.chart = new Chart(ctx, {
             type: 'line',
             data: {
@@ -45,7 +53,7 @@ export class UpdatingChart {
                     label: 'Energy',
                     borderColor: "#3e95cd",
                     data: data,
-                    pointRadius: (ctx) => alternatePointRadius(ctx,this.curIdx),
+                    pointRadius: (ctx) => alternatePointRadius(ctx,this.curIdx,highligths),
                 },
             ]
             },
@@ -70,8 +78,12 @@ export class UpdatingChart {
         let newData =getData(idx,this.fullData);            
         
         this.curIdx = Math.min(Math.max(0,idx - chartDelta/2),chartDelta/2)
+        
+        let curHighLiths = this.highlights.map(x=>  x - Math.max(0,idx - chartDelta/2)) 
+   
+
         this.chart.data.datasets[0].data = newData 
-        this.chart.data.datasets[0].pointRadius = (ctx) => alternatePointRadius(ctx,this.curIdx)
+        this.chart.data.datasets[0].pointRadius = (ctx) => alternatePointRadius(ctx,this.curIdx,curHighLiths)
         
         this.chart.data.labels = newData.map((x,idx,arr)=> idx)
         this.chart.update()

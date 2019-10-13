@@ -1,6 +1,6 @@
 import { dt } from "./config"
 import { Song } from "./song"
-import { SongData } from "./data/lib";
+import { SongData } from "./loader";
 
 
 // has gears

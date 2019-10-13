@@ -131,7 +131,7 @@ export class Note {
         this.orbitParticles = []
         this.idx= idx
         this.changeGear(song,gear)
-        this.isBuildUp = song.buildupOnsets.includes[idx]
+        this.isBuildUp = song.buildupOnsets.includes(idx) // not e idx not onset idx
 
     }
     changeGear({f_onset,maxFreq}:Song,{numNotes,downSample} : Gear)
@@ -156,8 +156,8 @@ export class Note {
                     return new OrbitParticle(10
                         , id * Math.PI * 2 / orbitParticles
                         , this.y, this.x
-                        , this.isBuildUp?5:3
-                        , addRandomDeviation(this.color, 100))
+                        , 3
+                        , this.isBuildUp?new rgb(255,0,0):addRandomDeviation(this.color, 100))
         
                 })        
             }

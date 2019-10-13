@@ -20,7 +20,7 @@ from tqdm import tqdm
 songdatas = []
 
 
-src = os.listdir(musicdir)[4]
+src = os.listdir(musicdir)[0]
 dst = src[:-4] +".wav"
  
 print(musicdir+ src)
@@ -59,14 +59,9 @@ w = 60
 e_full = np.convolve(e[0], np.ones(w), 'full') / w
 e_full = scipy.signal.resample(e_full,C.shape[1])
 t_onset = onset*(len(y)/sr)/C.shape[1]
-no_notes = 4
+
 t = np.linspace(0,len(y)/sr,C.shape[1])
 f_onset = np.argmax(C[:,onset],axis=0)
-
-
-
-
-#plt.plot(t,e_full)
 
 e_n = e_full/e_full.max()
 peaks,_ = sig.find_peaks(e_n,0.80,distance = 400)

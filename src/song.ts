@@ -1,5 +1,5 @@
 import {Howl, Howler} from 'howler';
-import {SongData} from './data/lib'
+import {SongData} from './loader'
 import { dt } from './config';
 export class Song
 {
@@ -25,7 +25,9 @@ export class Song
           });
         //this.sound.volume(0)
         this.sound.play()
+        this.sound.seek(30)
         this.duration = this.sound.duration()
+        this.buildupOnsets = data.buildupOnsets
         this.buildupOnsets = data.buildupOnsets
 
 

@@ -17,8 +17,12 @@ export class NoteDrawer {
     }
 
     update(gear:Gear,song :Song) {
+        //console.log("min : " + Math.min(...song.buildupOnsets))
+        //console.log(this.spawnedIDX)
+        
         song.visibleIdx.forEach( idx=>{
             if (idx > this.spawnedIDX) {
+                
                 this.spawnedIDX = idx 
                 this.visibleNotes.push(new Note(song,gear, idx))   
             }

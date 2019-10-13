@@ -1,4 +1,3 @@
-import { SongData } from './data/lib';
 import { Song } from './song';
 import { DynamicsManager } from './dynamicsManager';
 import { HitDetection } from './hitDetection';
@@ -23,6 +22,7 @@ export var ctx = canvas.getContext('2d')
 // custom setup
 
 let songdata = loadSongData()
+
 export var song = new Song(songdata)
 
 export var dynamicsManager = new DynamicsManager(song, screenShaker)
@@ -34,7 +34,7 @@ export var noteDrawer = new NoteDrawer()
 export var instrumentDrawer = new InstrumentDrawer(song, ctx, noteColorer)
 export var scoreDrawer = new ScoreDrawer(ctx, dynamicsManager, song)
 
-let energyChart = new UpdatingChart(song.e)
+let energyChart = new UpdatingChart(song.e,songdata.buildupEnergies)
 
 console.timeEnd('Initialization');
 
