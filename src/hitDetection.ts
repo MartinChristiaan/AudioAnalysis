@@ -1,6 +1,6 @@
 import { Song } from "./song";
 import {  keycodes, margin } from "./config";
-import { DynamicsManager } from "./dynamicsManager";
+import { Scoremanager } from "./scoreManager";
 import { Note } from "./noteParticle";
 import { Gear } from "./gearmanager";
 
@@ -17,9 +17,9 @@ export class HitDetection {
     activeNotes: any[];
     activeNotesHits :number[]
     
-    scoremanager: DynamicsManager;
+    scoremanager: Scoremanager;
 
-    constructor(scoremanager: DynamicsManager) {
+    constructor(scoremanager: Scoremanager) {
         this.activeNotes = new Array(11).fill(0);
         this.activeNotesHits = new Array(11).fill(0);
         this.scoremanager = scoremanager;

@@ -1,5 +1,5 @@
 import { Song } from './song';
-import { DynamicsManager } from './dynamicsManager';
+import { Scoremanager } from './scoreManager';
 import { HitDetection } from './hitDetection';
 import { NoteDrawer } from './noteDrawer';
 import { InstrumentDrawer } from './instrumentDrawer';
@@ -25,7 +25,7 @@ let songdata = loadSongData()
 
 export var song = new Song(songdata)
 
-export var dynamicsManager = new DynamicsManager(song, screenShaker)
+export var dynamicsManager = new Scoremanager(song, screenShaker)
 export var noteColorer = new NoteColorer(dynamicsManager)
 export var hitDetection = new HitDetection(dynamicsManager)
 export var gearbox = new GearBox(songdata)
@@ -41,8 +41,8 @@ console.timeEnd('Initialization');
 function main() {
     ctx.clearRect(0, 0, innerWidth, innerHeight); // clear canvas
     dynamicsManager.update()
-    var speed = dynamicsManager.speed
-    song.update(speed)
+    
+    song.update()
     noteDrawer.update(gearbox.curGear,song)
     hitDetection.detectHits(noteDrawer.visibleNotes,song)
     instrumentDrawer.update(hitDetection.activeNotes,gearbox.curGear)

@@ -109,22 +109,19 @@ export class Note {
     frequencyIdx:number
     y: number;
     t: number;
-    alpha: number;
+
     TrailParticles: TrailParticle[];
     color: rgb;
     orbitParticles: OrbitParticle[];
     livetimeAfterDead: number;    
-    idx: number;
     isBuildUp: boolean;
- 
+    idx: number;
+    
     constructor(song : Song,gear : Gear, idx: number) {
         this.t_onset = song.t_onset[idx]; // load from analyis  
-        let myf_onset = song.f_onset[idx];
         this.state= NoteState.ALIVE
-
         this.song = song
         this.y = innerHeight;
-        this.alpha = 1
         this.TrailParticles = []
         this.color = noteColorer.getNoteColorRaw(this.t)
         this.livetimeAfterDead = 20
@@ -139,18 +136,20 @@ export class Note {
         if (this.idx % downSample !==0 ) {
             this.state = NoteState.HIT
         }
+
         let myf_onset = f_onset[this.idx];
         this.frequencyIdx = Math.round(myf_onset/maxFreq *numNotes)
         this.t = (this.frequencyIdx + 1) / numNotes;
         this.x = (this.frequencyIdx + .5) * canvas.width / (numNotes);
         this.color = noteColorer.getNoteColorRaw(this.t)
+    
     }
     update() {
             
             var percentTravelled = (this.t_onset - this.song.t_min) / (this.song.t_max - this.song.t_min);
-        this.y = innerHeight - (percentTravelled * innerHeight);
-
+            this.y = innerHeight - (percentTravelled * innerHeight);
             this.color = noteColorer.getNoteColorRaw(this.t)
+
             if (this.orbitParticles.length == 0) {
                 this.orbitParticles =Array.from({ length: orbitParticles }, (_, id) => {
                     return new OrbitParticle(10

@@ -1,13 +1,13 @@
-import { levelThresholds } from "./config";
 import { Song } from "./song";
 import { ScreenShaker } from "./screenshake";
 
-export class DynamicsManager {
-    speed=0
-    speedLevelPercent= 0
+export class Scoremanager {
+
+    multiplierLevelPercent= 0
     multiplierScore = 0    
+
     score= 0;
-    level= 0
+    level= 1
         
     song: Song;
     screenshaker: ScreenShaker;
@@ -16,8 +16,6 @@ export class DynamicsManager {
     errorsound: Howl;
     hitSFX: Howl;
     
-      
-
     // Remember best distance for song
     constructor(song : Song,screenShaker : ScreenShaker) {
         this.song = song
@@ -38,13 +36,12 @@ export class DynamicsManager {
         this.levelupsound.play()
     }
     update() {
-        let newLevel = Math.floor(this.multiplierScore/10)
+        let newLevel = Math.floor(this.multiplierScore/10)+1
         if (this.level<newLevel) {
             this.levelUp()      
         }
         this.level = Math.max(0,newLevel)
-        this.speedLevelPercent = this.multiplierScore/10%1
-        
+        this.multiplierLevelPercent = this.multiplierScore/10%1        
     }
     applyBooster()
     {
@@ -60,11 +57,14 @@ export class DynamicsManager {
         // make instruments red
         console.log("false")
         this.errorsound.play()
-        this.multiplierScore -= 10// 0.05*(this.score - levelThresholds[this.multiplierLevelIdx]);
+        this.multiplierScore -= 10
+        this.multiplierScore = Math.max(0,this.multiplierScore)
+        // 0.05*(this.score - levelThresholds[this.multiplierLevelIdx]);
     }
     falseNegsative() {
 
         this.multiplierScore -= 10 // depend on gear 
-//        this.score -= 0.05*(this.score - levelThresholds[this.multiplierLevelIdx]);
+        this.multiplierScore = Math.max(0,this.multiplierScore)
+//      this.score -= 0.05*(this.score - levelThresholds[this.multiplierLevelIdx]);
     }
 }

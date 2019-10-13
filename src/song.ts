@@ -1,22 +1,52 @@
 import {Howl, Howler} from 'howler';
 import {SongData} from './loader'
-import { dt } from './config';
-export class Song
+import { dt, windowTimes } from './config';
+
+class Onset
+{
+    onsetTime:number
+    onsetFrequency:number
+    isBuildup:boolean
+}
+
+class TimeWindow // can also be used for charts
 {
     t_max:number;
     t_min:number;
+    t_cur: number = 0;
+    delta_low : 0
+    deltta_high : 0
+    constructor()
+    {
+        
+    }
+
+    UpdateWindow()
+    {
+
+    }   
+
+    GetItemsInWindow()
+    {
+
+    }
+}
+
+
+export class Song
+{
+    tw : TimeWindow    
     sound: Howl;
     duration: number = 300;
-    t_cur: number = 0;
-    visibleIdx: number [] = [];
+    visibleNotes: Onset [] = [];
     e: number [];
     max_freq: number
     e_cur=0;
     delta = 0
-    f_onset:number[] = []
-    t_onset:number[] =  []
+    onsets : Onset[]
     maxFreq:number = 11
-    buildupOnsets : number[]
+    e_idx = 0;
+    buildupEnergies: number[];
 
     constructor(data:SongData)
     {
@@ -27,32 +57,41 @@ export class Song
         this.sound.play()
         this.sound.seek(30)
         this.duration = this.sound.duration()
-        this.buildupOnsets = data.buildupOnsets
-        this.buildupOnsets = data.buildupOnsets
-
-
-        // var max = Math.max(...data.f_onset)
-        this.f_onset = data.f_onset//.map(x => {return Math.round(x/max * (maxNotes-1))})
-        this.t_onset = data.t_onset
+        this.buildupEnergies = data.buildupEnergies
+        this.onsets = Array.from({length: 10}, (_, id) =>  
+            {
+                let onset = {
+                    onsetTime:data.t_onset[id],
+                    onsetFrequency:data.f_onset[id],
+                    isBuildup : data.buildupOnsets.includes(id)
+                        } 
+                return onset
+            })
         this.e = data.e
-        // this.e_cur = data.e[0]
-        // this.visibleIdx  = []
+        this.tw = {t_max:2,t_min:0,t_cur:0}
             
     }
-    update(speed:any)
+    update()
     {
         this.duration = this.sound.duration()
-        try {this.t_cur = this.sound.seek() as number} catch (error) {}
-        this.e_cur = this.e[Math.round(this.t_cur/this.duration * this.e.length)]
-        this.delta = 2/(speed * dt +1)
+        let t_cur = 0
+        try {t_cur = this.sound.seek() as number} catch (error) {}
 
-        this.t_max = this.t_cur +this.delta // speed code
-        this.t_min = this.t_cur - .5*this.delta // speed code
-        this.visibleIdx = []
-        for (let i = 0; i < this.t_onset.length; i++) {
-            const time = this.t_onset[i];
-            if (time > this.t_min && time < this.t_max) {
-                this.visibleIdx.push(i)     
+        this.e_idx = Math.round(t_cur/this.duration * this.e.length)
+        this.e_cur = this.e[this.e_idx]
+
+        let t_max = t_cur + windowTimes // speed code
+        let t_min = t_cur - windowTimes  // speed code
+
+        this.tw = {t_max:t_max,t_min:t_min,t_cur:t_cur}
+
+
+        this.visibleNotes = []
+
+        for (let i = 0; i < this.onsets.length; i++) {
+            const time = this.onsets[i].onsetTime;
+            if (time > t_min && time < t_max) {
+                this.visibleNotes.push(this.onsets[i])     
             }
         }
         

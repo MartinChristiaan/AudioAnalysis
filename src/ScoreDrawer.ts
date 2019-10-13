@@ -1,12 +1,12 @@
 import { Song } from "./song";
 import { levelThresholds } from "./config";
-import { DynamicsManager } from "./dynamicsManager";
+import { Scoremanager } from "./scoreManager";
 import { rgb, lerpColors } from "./colors";
 export class ScoreDrawer {
-    scoreManager: DynamicsManager;
+    scoreManager: Scoremanager;
     ctx: CanvasRenderingContext2D;
     song: Song;
-    constructor(ctx: CanvasRenderingContext2D, scoremanager: DynamicsManager, song: Song) {
+    constructor(ctx: CanvasRenderingContext2D, scoremanager: Scoremanager, song: Song) {
         this.ctx = ctx;
         this.song = song;
         this.scoreManager = scoremanager;
@@ -14,12 +14,16 @@ export class ScoreDrawer {
     frmt(num) {
         return Math.round((num + 0.0001) * 10) / 10;
     }
-    drawProgressBar(value:number,low:number,high:number,xpos:number,ypos,maxWidth,maxHeight,fontsize){
+    drawProgressBar(value:number,low:number,high:number
+                    ,xpos:number,ypos
+                    ,maxWidth,maxHeight
+                    ,fontsize,imsrc : string
+                    ,colorLow : rgb
+                    ,colorHigh : rgb ){
         this.ctx.font = fontsize.toString() + "px Arial";
         this.ctx.strokeStyle = "white";
         this.ctx.lineWidth = 2;
-        var colorLow = new rgb(0,0,255)
-        var colorHigh = new rgb (255,0,0)
+ 
 
         //this.ctx.strokeText(low.toFixed(2), xpos - maxWidth/2, ypos);
         var percent = (value-low)/(high-low)
@@ -34,16 +38,15 @@ export class ScoreDrawer {
         this.ctx.fillStyle= my_gradient//
         this.ctx.fillRect(xpos - maxWidth/2,ypos,maxWidth*percent,maxHeight)
         if (value==undefined) {
-            value = low
-
-    
+            value = low    
         }
         try {
             this.ctx.strokeText(value.toFixed(2), xpos -maxWidth/2, ypos + maxHeight -4);
             this.ctx.strokeText(high.toFixed(2), xpos + maxWidth/2 + 3, ypos + maxHeight - 4);
-        } catch (error) {
-            
-        }
+        } catch (error) {}
+        const image = new Image(32, 32); // Using optional size for image
+        image.src = imsrc
+        this.ctx.drawImage(image,xpos - maxWidth/2 - 40,ypos -3,32,32)
         
     }
 
@@ -59,17 +62,21 @@ export class ScoreDrawer {
         this.drawProgressBar(this.song.t_cur
             ,0
             ,this.song.duration
-            ,150,50,200,25,20)
-
-        this.drawProgressBar(this.scoreManager.score
+            ,150,50,200,25,20,'../data/time.png',
+            new rgb(218,34,255),new rgb(151,51,238)
+            )
+        console.log(this.scoreManager.multiplierScore)
+        this.drawProgressBar(this.scoreManager.multiplierScore
+            ,(this.scoreManager.level-1)*10
             ,this.scoreManager.level*10
-            ,this.scoreManager.level*10+10
-            ,150,100,200,25,20)
+            ,150,100,200,25,20,'../data/score.png',
+            new rgb(238,9,121),new rgb(255,106,0))
 
-        this.drawProgressBar(this.song.e_cur
+        this.drawProgressBar(this.song.e_cur*2
             ,0
             ,1
-            ,150,150,200,25,20)
+            ,150,150,200,25,20,'../data/bolt.png',
+            new rgb(241,39,17),new rgb(245,175,25))
         
                
         this.ctx.strokeText(this.scoreManager.level + "x", 100, 200);

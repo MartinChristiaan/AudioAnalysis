@@ -1,6 +1,6 @@
 // 
 //export var maxNotes = 4;
-
+export var windowTimes = 2//sec
 export var chartDelta = 500
 export var keycodes = 
     {   

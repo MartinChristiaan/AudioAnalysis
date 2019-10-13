@@ -1,4 +1,4 @@
-import { DynamicsManager } from "./dynamicsManager";
+import { Scoremanager } from "./scoreManager";
 
 
 function lrp(v1, v2, t) {
@@ -29,8 +29,8 @@ export function addRandomDeviation(color: rgb, dev = 20) {
 }
 
 export class NoteColorer {
-  dynamicsManager: DynamicsManager;
-  constructor(dynamicsManager: DynamicsManager) {
+  dynamicsManager: Scoremanager;
+  constructor(dynamicsManager: Scoremanager) {
     this.dynamicsManager = dynamicsManager
   }
 
@@ -39,7 +39,7 @@ export class NoteColorer {
   }
 
   getNoteColorRaw(percent:number) {
-    var idx = this.dynamicsManager.level
+    var idx = this.dynamicsManager.level-1
 //    var percent2 = this.dynamicsManager.speedLevelPercent
 //    var collow = lerpColors(gradientColors[idx], gradientColors[idx + 1], percent2)
 //    var colhigh = lerpColors(gradientColors[idx + 1], gradientColors[idx + 2], percent2)
