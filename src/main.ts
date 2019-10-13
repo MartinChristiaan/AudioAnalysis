@@ -1,4 +1,4 @@
-import { Song } from './song';
+import { SongPlayer } from './song';
 import { Scoremanager } from './scoreManager';
 import { HitDetection } from './hitDetection';
 import { NoteDrawer } from './noteDrawer';
@@ -6,7 +6,7 @@ import { InstrumentDrawer } from './instrumentDrawer';
 import { ScoreDrawer } from './ScoreDrawer';
 import { NoteColorer } from './colors';
 import { screenShaker } from './postprocessing';
-import { loadSongData } from './loader';
+import { loadSongData, selectSong } from './loader';
 import { GearBox } from './gearmanager';
 import { load } from './inputHandler';
 import {UpdatingChart} from './charts/charts'
@@ -14,16 +14,17 @@ import {UpdatingChart} from './charts/charts'
 // canvas setup
 console.log("Starting")
 console.time('Initialization');
+
+var song = selectSong(3)
+var player = new SongPlayer(song,30)
+
 export var canvas = document.querySelector('canvas')
 canvas.height = innerHeight
 canvas.width= document.getElementById("canvasdiv").clientWidth
 export var ctx = canvas.getContext('2d')
-
 // custom setup
+let songdata = loadSongData(song,player.duration)
 
-let songdata = loadSongData()
-
-export var song = new Song(songdata)
 
 export var dynamicsManager = new Scoremanager(song, screenShaker)
 export var noteColorer = new NoteColorer(dynamicsManager)

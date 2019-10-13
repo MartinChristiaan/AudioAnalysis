@@ -1,6 +1,7 @@
 import { Chart } from "chart.js"
-import { song } from "../main";
 import { chartDelta } from "../config";
+import { TimeWindow, IndexWindow } from "../TimeWindow";
+import { SongData, Energy } from "../loader";
 
 
 export function getData(curIdx, data: number[]) {
@@ -28,32 +29,28 @@ function alternatePointRadius(ctx,curIdx,highligths) {
 
 
 export class UpdatingChart {
-    fullData: number[];
+    fullData: Energy[];
     chart: Chart;
-    curIdx :number = 0
     highlights: number[];
-    constructor(fullData: number[],highligths:number[]) {
-
-        this.fullData = fullData
+    window :IndexWindow 
+    constructor(songdata:SongData) {
+        let timePerIndex = songdata.energies[1].time - songdata.energies[0].time 
+        this.window = new IndexWindow(4,-1,timePerIndex)
+        this.fullData = songdata.energies
         var ctx = (document.getElementById('EnergyChart') as HTMLCanvasElement).getContext('2d');
-        let dt = fullData.length / song.duration
-
-        let data = getData(0, fullData)
-        let labels = data.map((x, idx, arr) => idx)
-
         Chart.defaults.global.elements.line.fill = false;
         Chart.defaults.global.animation = false;
-        this.highlights = highligths
+        this.highlights = songdata.buildupEnergies
         this.chart = new Chart(ctx, {
             type: 'line',
             data: {
 //                labels: labels,
                 datasets: [{
-                    labels: labels,
+                    labels: [],
                     label: 'Energy',
                     borderColor: "#3e95cd",
-                    data: data,
-                    pointRadius: (ctx) => alternatePointRadius(ctx,this.curIdx,highligths),
+                    data: [],
+                    pointRadius: 0// (ctx) => alternatePointRadius(ctx,this.curIdx,highligths),
                 },
             ]
             },
@@ -73,11 +70,12 @@ export class UpdatingChart {
             
         });
     }
-    UpdateData(idx : number)
+    UpdateData(time:number)
     {
-        let newData =getData(idx,this.fullData);            
+        let curIdx = this.window.UpdateWindow(time)
+        let newData = this.window.GetItemsInWindow(this.fullData) //getData(idx,this.fullData);            
         
-        this.curIdx = Math.min(Math.max(0,idx - chartDelta/2),chartDelta/2)
+         = Math.min(Math.max(0,idx - chartDelta/2),chartDelta/2)
         
         let curHighLiths = this.highlights.map(x=>  x - Math.max(0,idx - chartDelta/2)) 
    
