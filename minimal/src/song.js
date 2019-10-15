@@ -1,25 +1,33 @@
 
+
+function waitUntilSongStarts(sound,onSongStarted) {
+    if (sound.duration()>0){
+        onSongStarted(sound)
+    }
+    else
+    { 
+        console.log(sound.duration())
+        setTimeout(() => waitUntilSongStarts(sound,onSongStarted),100)
+    }
+}
+
+
 module.exports = {
+    
+    LoadSong:function(source,onSongStarted)
+    {
+        var sound = new Howl({
+            src: ['../music/' + source.slice(0,source.length-4) + ".mp3"]
+        });
+      
+        sound.volume(1)
+        sound.play()
+        sound.seek(0)
+        waitUntilSongStarts(sound,onSongStarted)    
+    }
+    
     
 
 
-    PlaySong:function(src,start,volume) {
-        sound =new Howl({
-            src: [src]
-          });
-        sound.seek(start)
-        sound.play()
-        sound.volume(volume)
-        duration = () => sound.duration()
-        let getTime = () =>
-        {
-            let newTimeInSong = sound.seek()
-            if (typeof newTimeInSong == 'number') {return newTimeInSong}            
-            return 0
-        }
-        let song = {GetCurrentTime : getTime,Duration : duration}
-
-        return song
-    }
 
 }

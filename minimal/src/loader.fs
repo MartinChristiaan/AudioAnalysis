@@ -4,9 +4,16 @@ open Fable.PowerPack.Fetch
 open Fable.Import
 open Fable.Import.Browser
 
+type Song =
+    abstract seek : unit -> float
+    abstract duration : unit -> float
+type ISongPlayer = 
+    abstract LoadSong : string -> (Song -> unit) -> unit 
+
 let loadfile file callback = 
         fetch file []
         |> Promise.bind (fun res -> res.text())
+        |> Promise.map(fun x -> x.Split '\n' )
         |> Promise.map callback
 
 let convertToNumberArray(line: string) =
@@ -47,25 +54,38 @@ type SelectedSong = {
     
 
 let selectSong idx  onSongSelected onSongDataLoaded =
-    console.log(availableSongs)
-
     //if (idx==-1) {
     //    idx = Math.floor(Math.random() * availableSongs.length)
     //}
-    let furtherPr
-    let chosenSong = availableSongs.[idx] // availableSongs[Math.floor(Math.random() * availableSongs.length)]//
-    let loadSongData duration  =
-        let data = loadFile("../data/songs/" + chosenSong.slice(0, chosenSong.length - 4) + ".txt")
+    let onAvailableSongsFileLoaded (availableSongs : string array) = 
+        let chosenSong = availableSongs.[idx]|> fun  x -> x.[0..x.Length-6]  // availableSongs[Math.floor(Math.random() * availableSongs.length)]//
         
-        //.split(/\r?\n/).map(convertToNumberArray)
-        let songdata : SongData = new SongData(data.[0],data.[1],data.[2],data.[3],data.[4],duration)
- //       onSongDataLoaded.fire(songdata)
-        ()
-    loadfile ("../data/available.txt".split '\n') (fun x -> console.log(x))|> ignore
+        
+        let createSongDataFromStringArray (song:Song) (strings : string array)  = 
+            
+            let data = strings|>Array.take 5|>Array.map(fun x -> x.Split ','|> Array.map float) 
+  
+            createSongData data.[0] data.[1] data.[2] data.[3] data.[4] (song.duration())
+            |>onSongDataLoaded song
+
+        let loadSongData (song:Song) = 
+            console.log("loading")
+            loadfile ("../data/songs/" + chosenSong + ".txt") (createSongDataFromStringArray song)
+            |>ignore
+        onSongSelected chosenSong loadSongData                   
+        
+        
+        //         //.split(/\r?\n/).map(convertToNumberArray)
+    //         let songdata : SongData = new SongData(data.[0],data.[1],data.[2],data.[3],data.[4],duration)
+    //  //       onSongDataLoaded.fire(songdata)
+    //         ()
+        
+    loadfile ("../data/available.txt") onAvailableSongsFileLoaded|> ignore
         
     
     ()
 //    onSongSelected.fire({source:chosenSong,loadSongData:loadSongData})
+
 
 
 
