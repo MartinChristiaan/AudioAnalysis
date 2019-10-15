@@ -1,4 +1,4 @@
-import { Song } from "./song";
+import { Song } from "./songplayer";
 import { levelThresholds } from "./config";
 import { Scoremanager } from "./scoreManager";
 import { rgb, lerpColors } from "./colors";

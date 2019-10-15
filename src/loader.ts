@@ -1,3 +1,7 @@
+import { MyEvent } from "./util/MyEvent";
+
+
+
 function loadFile(filePath: string): string {
     var result = null;
     var xmlhttp = new XMLHttpRequest();
@@ -12,6 +16,8 @@ function loadFile(filePath: string): string {
 function convertToNumberArray(line: string) {
     return line.split(',').map((x) => parseFloat(x))
 }
+
+
 export class Onset implements timedValue
 {
     time:number
@@ -63,7 +69,14 @@ export class SongData
     }
         
 }
-export function selectSong(idx=-1)
+
+export class SelectedSong
+{
+    source:string
+    loadSongData:(number)=>void
+}
+
+export function selectSong(idx=-1,onSongSelected : MyEvent<SelectedSong>,onSongDataLoaded:MyEvent<SongData>)
 {
     var availableSongs = loadFile("../data/available.txt").split(/\r?\n/);
     availableSongs.pop()
@@ -71,14 +84,14 @@ export function selectSong(idx=-1)
     if (idx===-1) {
         idx = Math.floor(Math.random() * availableSongs.length)
     }
-    var chosenSong = availableSongs[idx] // availableSongs[Math.floor(Math.random() * availableSongs.length)]//
-    return chosenSong.slice(0, chosenSong.length - 4) + ".mp3"
-}
+    let chosenSong = availableSongs[idx] // availableSongs[Math.floor(Math.random() * availableSongs.length)]//
+    let loadSongData = (duration) => {
+        var data = loadFile("../data/songs/" + chosenSong.slice(0, chosenSong.length - 4) + ".txt").split(/\r?\n/).map(convertToNumberArray)
+        
+        const songdata : SongData = new SongData(data[0],data[1],data[2],data[3],data[4],duration)
+        onSongDataLoaded.fire(songdata)
+        
+    }
+    onSongSelected.fire({source:chosenSong,loadSongData:loadSongData})
 
-export function loadSongData(chosenSong,duration) {
-    var data = loadFile("../data/songs/" + chosenSong.slice(0, chosenSong.length - 4) + ".txt").split(/\r?\n/).map(convertToNumberArray)
-
-    const songdata : SongData = new SongData(data[0],data[1],data[2],data[3],data[4],duration)
-
-    return songdata //random song
 }

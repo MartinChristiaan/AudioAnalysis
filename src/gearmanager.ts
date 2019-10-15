@@ -1,5 +1,5 @@
 import { dt } from "./config"
-import { Song } from "./song"
+import { Song } from "./songplayer"
 import { SongData } from "./loader";
 
 

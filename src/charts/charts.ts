@@ -1,6 +1,6 @@
 import { Chart } from "chart.js"
 import { chartDelta } from "../config";
-import { TimeWindow, IndexWindow } from "../TimeWindow";
+import {  IndexWindow } from "../TimeWindow";
 import { SongData, Energy } from "../loader";
 
 

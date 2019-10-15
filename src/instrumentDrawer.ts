@@ -1,4 +1,4 @@
-import { Song } from "./song";
+import { Song } from "./songplayer";
 import { NoteColorer } from "./colors";
 import { lineTo,moveTo } from "./postprocessing";
 import { Gear } from "./gearmanager";

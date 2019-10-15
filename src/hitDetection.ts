@@ -1,4 +1,4 @@
-import { Song } from "./song";
+import { Song } from "./songplayer";
 import {  keycodes, margin } from "./config";
 import { Scoremanager } from "./scoreManager";
 import { Note } from "./noteParticle";
@@ -34,8 +34,8 @@ export class HitDetection {
     detectHits(visibleNotes : Note [],{t_cur} : Song) {
         visibleNotes.forEach(note => {
 
-            var t_min = note.t_onset - margin;
-            var t_max = note.t_onset + margin;
+            var t_min = note.onsetTime - margin;
+            var t_max = note.onsetTime + margin;
 
             if (note.state == NoteState.ALIVE) {
                 if (t_cur > t_min && t_cur < t_max) {
