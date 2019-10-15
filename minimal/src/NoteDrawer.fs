@@ -62,7 +62,6 @@ let drawNote (note:Note) =
 let timeStep currentTime = 
     ctx.clearRect (0.0,0.0,innerWidth,innerHeight);
     let visibleNotes = notes|>GetItemsInTimeWindow futureTimeMargin pastTimeMargin currentTime (fun x -> x.onsetTime)
-    //console.log(notes|>Array.map(fun x-> x.onsetTime))
 
     visibleNotes|>Array.iter (getVerrticalPosition currentTime>>drawNote)
     
