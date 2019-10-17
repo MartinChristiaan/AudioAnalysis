@@ -1,7 +1,5 @@
 import { MyEvent } from "./util/MyEvent";
 
-
-
 function loadFile(filePath: string): string {
     var result = null;
     var xmlhttp = new XMLHttpRequest();

@@ -37,7 +37,7 @@ onSongSelected.subscribe((x:SelectedSong)=>{
         loadSong(x.source,onSongStarted)}
     );
 
-selectSong(1,onSongSelected,onSongDataLoaded)
+//selectSong(1,onSongSelected,onSongDataLoaded)
 
 
 

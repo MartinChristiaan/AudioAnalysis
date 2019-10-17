@@ -5,6 +5,7 @@
   <ItemGroup>
     <Compile Include="Loader.fs" />
     <Compile Include="NoteDrawer.fs" />
+    <Compile Include="InstrumentDrawer.fs" />
     <Compile Include="App.fs" />
   </ItemGroup>
   <ItemGroup>

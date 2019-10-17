@@ -26,9 +26,6 @@ let percentInWindow futureTimeMargin pastTimeMargin currentTime time =
     inverseLerp (currentTime - pastTimeMargin)(currentTime + futureTimeMargin) time 
 
 
-let mutable futureTimeMargin = 2.0
-let mutable pastTimeMargin = 1.0
-
 
 type NoteState = Dead | Alive | Hit | Missed
 type Note={
@@ -38,15 +35,11 @@ type Note={
     x: float;
 }
 
-let mutable notes = Array.empty 
 
 
-let InitializeNotes (songData:SongData) =
-    notes <- songData.onsets|>Array.map(fun onset -> 
-        {onsetTime = onset.time;state = NoteState.Alive;y = innerHeight;x = onset.frequency /11.0 * innerWidth})
 
 let getVerrticalPosition  (currentTime) (note: Note) =
-        let percentTravelled = percentInWindow futureTimeMargin pastTimeMargin currentTime note.onsetTime
+        let percentTravelled = percentInWindow timeMargin (timeMargin/2.0) currentTime note.onsetTime
         {note with y = innerHeight - (percentTravelled * innerHeight);
     }
 
@@ -59,11 +52,25 @@ let drawNote (note:Note) =
     ctx.restore()
 
 
-let timeStep currentTime = 
-    ctx.clearRect (0.0,0.0,innerWidth,innerHeight);
-    let visibleNotes = notes|>GetItemsInTimeWindow futureTimeMargin pastTimeMargin currentTime (fun x -> x.onsetTime)
+type NoteDrawer(songDataLoaded:IEvent<SongData>) = 
 
-    visibleNotes|>Array.iter (getVerrticalPosition currentTime>>drawNote)
+    let mutable notes = Array.empty
+  
+    let initializeNotes (songData : SongData) =
+        notes <- songData.onsets|>Array.map(fun onset -> 
+            {onsetTime = onset.time;state = NoteState.Alive;y = innerHeight;x = onset.frequency /11.0 * innerWidth})
+
+    do songDataLoaded.Add initializeNotes
+
+  
+
+    let timeStep currentTime = 
+        ctx.clearRect (0.0,0.0,innerWidth,innerHeight);
+        let visibleNotes = notes|>GetItemsInTimeWindow timeMargin (timeMargin/2.0) currentTime (fun x -> x.onsetTime)
+        visibleNotes|>Array.iter (getVerrticalPosition currentTime>>drawNote)
+
+  
+
     
     
 
