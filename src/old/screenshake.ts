@@ -1,4 +1,4 @@
-import { ctx } from "./main"
+import { ctx } from "../main"
 
 
 export class ScreenShaker {

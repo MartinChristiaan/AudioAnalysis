@@ -1,11 +1,11 @@
 //import { Song } from './song';
-import { NoteColorer, rgb, addRandomDeviation } from './colors';
+import { NoteColorer, rgb, addRandomDeviation } from '../colors';
 import { Gear } from './gearmanager';
 import { NoteState } from './hitDetection';
 import { GetItemsInTimeWindow, percentInWindow } from "./TimeWindow";
-import { Onset, SongData } from "./loader";
-import { MyEvent } from "./util/MyEvent";
-import { orbitParticles } from "./config";
+import { Onset, SongData } from "../loader";
+import { MyEvent } from "../util/MyEvent";
+import { orbitParticles } from "../config";
 
 export class Note
 {

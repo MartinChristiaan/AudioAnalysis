@@ -1,6 +1,6 @@
-import { dt } from "./config"
+import { dt } from "../config"
 import { Song } from "./songplayer"
-import { SongData } from "./loader";
+import { SongData } from "../loader";
 
 
 // has gears

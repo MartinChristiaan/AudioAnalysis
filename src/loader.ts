@@ -1,4 +1,6 @@
 import { MyEvent } from "./util/MyEvent";
+import { fromEvent, ConnectableObservable } from "rxjs";
+import { map, filter, switchMap, publish, scan, buffer } from "rxjs/operators";
 
 function loadFile(filePath: string): string {
     var result = null;
@@ -28,12 +30,11 @@ export class Energy implements timedValue
     time:number
 }
 
-
 export interface timedValue {
     time: number;
 }
 
-export class SongData
+export class SongAnalysisData
 {
     energies : Energy [];
     onsets : Onset [];    
@@ -68,13 +69,8 @@ export class SongData
         
 }
 
-export class SelectedSong
-{
-    source:string
-    loadSongData:(number)=>void
-}
 
-export function selectSong(idx=-1,onSongSelected : MyEvent<SelectedSong>,onSongDataLoaded:MyEvent<SongData>)
+function selectSong(idx=-1)
 {
     var availableSongs = loadFile("../data/available.txt").split(/\r?\n/);
     availableSongs.pop()
@@ -82,14 +78,71 @@ export function selectSong(idx=-1,onSongSelected : MyEvent<SelectedSong>,onSongD
     if (idx===-1) {
         idx = Math.floor(Math.random() * availableSongs.length)
     }
-    let chosenSong = availableSongs[idx] // availableSongs[Math.floor(Math.random() * availableSongs.length)]//
-    let loadSongData = (duration) => {
-        var data = loadFile("../data/songs/" + chosenSong.slice(0, chosenSong.length - 4) + ".txt").split(/\r?\n/).map(convertToNumberArray)
+    return availableSongs[idx].slice(0,availableSongs[idx].length-4) // availableSongs[Math.floor(Math.random() * availableSongs.length)]//
+   
+}
+
+function loadSongData (chosenSong:string,song:Howl){
+    var data = loadFile("../data/songs/" + chosenSong.slice(0, chosenSong.length - 4) + ".txt").split(/\r?\n/).map(convertToNumberArray)
+    const songdata : SongAnalysisData = new SongAnalysisData(data[0],data[1],data[2],data[3],data[4],song.duration())    
+}
+
+import { Howl, Howler } from 'howler';
+
+function waitUntilSongStarts(sound:Howl,resolve) {
+    if (sound.duration()>0){
         
-        const songdata : SongData = new SongData(data[0],data[1],data[2],data[3],data[4],duration)
-        onSongDataLoaded.fire(songdata)
-        
+        resolve(sound)
     }
-    onSongSelected.fire({source:chosenSong,loadSongData:loadSongData})
+    else
+    { 
+        console.log(sound.duration())
+     setTimeout(() => waitUntilSongStarts(sound,resolve),100)
+    }
+}
+
+
+function loadSong(source:string)
+{
+    var sound = new Howl({
+        src: ['../music/' + source + ".mp3"]
+    });
+  
+    sound.volume(1)
+    sound.play()
+    sound.seek(0)
+    return new Promise((resolve,fail) => waitUntilSongStarts(sound,resolve))
 
 }
+
+let digitKeys = [0,1,2,3,4,5,6,7,8,9].map(x => x.toString())
+export let songTitle$ = fromEvent(document,'keydown').pipe(
+    map(x => (x as KeyboardEvent).key),
+    filter(x => digitKeys.includes(x)),
+    map(x => digitKeys.indexOf(x)),
+    map(selectSong)
+)
+export let songPlayer$ = songTitle$.pipe(
+    switchMap(title => loadSong(title)),
+    
+    publish()
+) as ConnectableObservable<Howl>
+
+songPlayer$.subscribe(x => console.log(x.duration()))
+songPlayer$.pipe(
+    buffer(songPlayer$)    
+).subscribe((x) => x[0].stop())
+
+
+songPlayer$.connect()
+
+
+
+
+
+
+
+
+
+
+

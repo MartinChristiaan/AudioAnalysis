@@ -1,5 +1,5 @@
 import { ScreenShaker } from "./screenshake";
-import { ctx } from "./main";
+import { ctx } from "../main";
 
 export const screenShaker = new ScreenShaker()
 export function drawCircle(x,y,r)

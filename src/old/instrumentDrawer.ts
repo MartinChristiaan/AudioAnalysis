@@ -1,8 +1,8 @@
 import { Song } from "./songplayer";
-import { NoteColorer } from "./colors";
+import { NoteColorer } from "../colors";
 import { lineTo,moveTo } from "./postprocessing";
 import { Gear } from "./gearmanager";
-import { canvas } from "./main";
+import { canvas } from "../main";
 export class InstrumentDrawer {
     ctx: CanvasRenderingContext2D;
     song: Song;

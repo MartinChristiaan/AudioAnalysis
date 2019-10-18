@@ -1,7 +1,7 @@
 import { Song } from "./songplayer";
-import { levelThresholds } from "./config";
+import { levelThresholds } from "../config";
 import { Scoremanager } from "./scoreManager";
-import { rgb, lerpColors } from "./colors";
+import { rgb, lerpColors } from "../colors";
 export class ScoreDrawer {
     scoreManager: Scoremanager;
     ctx: CanvasRenderingContext2D;

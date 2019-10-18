@@ -1,5 +1,5 @@
 import { Song } from "./songplayer";
-import {  keycodes, margin } from "./config";
+import {  keycodes, margin } from "../config";
 import { Scoremanager } from "./scoreManager";
 import { Note } from "./noteParticle";
 import { Gear } from "./gearmanager";
