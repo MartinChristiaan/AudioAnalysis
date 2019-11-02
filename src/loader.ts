@@ -1,6 +1,11 @@
-import { MyEvent } from "./util/MyEvent";
-import { fromEvent, ConnectableObservable } from "rxjs";
-import { map, filter, switchMap, publish, scan, buffer } from "rxjs/operators";
+import { fromEvent, ConnectableObservable, zip } from "rxjs";
+import { map, filter, switchMap, publish, scan, buffer, pairwise, throttleTime, concatMap, observeOn } from "rxjs/operators";
+
+import { Howl } from 'howler';
+import { SongAnalysisData as SongAnalysis } from "./types/types";
+import { ControlBus } from "./bus";
+import { animationFrame } from "rxjs/internal/scheduler/animationFrame";
+import { createMenu } from "./menu/menu";
 
 function loadFile(filePath: string): string {
     var result = null;
@@ -17,77 +22,18 @@ function convertToNumberArray(line: string) {
     return line.split(',').map((x) => parseFloat(x))
 }
 
-
-export class Onset implements timedValue
+function selectSong(availableSongs,idx=-1)
 {
-    time:number
-    frequency:number
-    isBuildup:boolean
-}
-export class Energy implements timedValue
-{
-    energy:number
-    time:number
-}
-
-export interface timedValue {
-    time: number;
-}
-
-export class SongAnalysisData
-{
-    energies : Energy [];
-    onsets : Onset [];    
-    buildupOnsets: number[];
-    buildupEnergies: number [];
-    maxFreq:number = 11
-
-    constructor(t_onset,f_onset,e,buildupOnsets,buildupEnergies,duration)
-    {   let dt = duration / e.length
-        this.onsets = Array.from({length: f_onset.length}, (_, id) =>  
-        {
-            let onset = {
-                time:t_onset[id],
-                frequency:f_onset[id],
-                isBuildup :buildupOnsets.includes(id)
-                    } 
-            return onset
-        })
-
-        this.energies = Array.from({length: e.length}, (_, id) =>  
-        {
-            
-            let energy = {
-                energy:e[id],
-                time:id * dt              
-                    } 
-            return energy
-        })      
-
-
-    }
-        
-}
-
-
-function selectSong(idx=-1)
-{
-    var availableSongs = loadFile("../data/available.txt").split(/\r?\n/);
-    availableSongs.pop()
-    console.log(availableSongs)
     if (idx===-1) {
         idx = Math.floor(Math.random() * availableSongs.length)
     }
-    return availableSongs[idx].slice(0,availableSongs[idx].length-4) // availableSongs[Math.floor(Math.random() * availableSongs.length)]//
+    return availableSongs[idx] // availableSongs[Math.floor(Math.random() * availableSongs.length)]//
    
 }
-
-function loadSongData (chosenSong:string,song:Howl){
-    var data = loadFile("../data/songs/" + chosenSong.slice(0, chosenSong.length - 4) + ".txt").split(/\r?\n/).map(convertToNumberArray)
-    const songdata : SongAnalysisData = new SongAnalysisData(data[0],data[1],data[2],data[3],data[4],song.duration())    
+function loadSongAnalysis (chosenSong:string,song:Howl){
+    var data = loadFile("../data/songs/" + chosenSong + ".txt").split(/\r?\n/).map(convertToNumberArray)
+    return new SongAnalysis(data[0],data[1],data[2],data[3],data[4],data[5],data[6],song.duration())    
 }
-
-import { Howl, Howler } from 'howler';
 
 function waitUntilSongStarts(sound:Howl,resolve) {
     if (sound.duration()>0){
@@ -108,33 +54,56 @@ function loadSong(source:string)
         src: ['../music/' + source + ".mp3"]
     });
   
-    sound.volume(1)
+    sound.volume(0)
     sound.play()
-    sound.seek(0)
+    sound.seek()
     return new Promise((resolve,fail) => waitUntilSongStarts(sound,resolve))
 
 }
 
-let digitKeys = [0,1,2,3,4,5,6,7,8,9].map(x => x.toString())
-export let songTitle$ = fromEvent(document,'keydown').pipe(
-    map(x => (x as KeyboardEvent).key),
-    filter(x => digitKeys.includes(x)),
-    map(x => digitKeys.indexOf(x)),
-    map(selectSong)
-)
-export let songPlayer$ = songTitle$.pipe(
-    switchMap(title => loadSong(title)),
+function shuffle(a) {
+    var j, x, i;
+    for (i = a.length - 1; i > 0; i--) {
+        j = Math.floor(Math.random() * (i + 1));
+        x = a[i];
+        a[i] = a[j];
+        a[j] = x;
+    }
+    return a;
+}
+
+export function SetupSongLoading(bus:ControlBus)
+{
+    var availableSongs = loadFile("../data/available.txt")
+                            .split(/\r?\n/).map(x => x.slice(0,x.length-4));
+    availableSongs.pop()
+    availableSongs = shuffle(availableSongs)
+    createMenu(availableSongs,bus)
+    let digitKeys = availableSongs.map((x,idx) => (idx+1).toString())
+
+    fromEvent(document,'keydown').pipe(
+        map(x => (x as KeyboardEvent).key),
+        filter(x => digitKeys.includes(x)),
+        map(x => digitKeys.indexOf(x)),
+        map(x => availableSongs[x])
+    ).subscribe(x => bus.songTitle$.next(x))
+
+    bus.songTitle$.pipe(
+        concatMap(title => loadSong(title)),
+    ).subscribe(x => bus.songPlayer$.next(x as Howl))
+    // songPlayer$.subscribe(x => console.log(x.duration()))
+    bus.songPlayer$.pipe(
+        pairwise()    
+    ).subscribe(([previousValue, currentValue]) => previousValue.stop())
+
+    bus.songAnalysis$.pipe(map((x) => x.onsets),observeOn(animationFrame)).subscribe(x => bus.onsets$.next(x))
+
+    zip(bus.songTitle$,bus.songPlayer$).pipe(
+        map(([title,player]) => loadSongAnalysis(title,player))
+    ).subscribe(x => bus.songAnalysis$.next(x))
     
-    publish()
-) as ConnectableObservable<Howl>
-
-songPlayer$.subscribe(x => console.log(x.duration()))
-songPlayer$.pipe(
-    buffer(songPlayer$)    
-).subscribe((x) => x[0].stop())
-
-
-songPlayer$.connect()
+    
+}
 
 
 
@@ -145,4 +114,13 @@ songPlayer$.connect()
 
 
 
+function createSongList(availableSongs: string[]) {
+    let songlist = document.getElementById("control");
+    availableSongs.forEach((title,idx) => {
+        let node = document.createElement("button");
+        node.className = "button songTitle"
+        node.innerText = ((idx+1) + ". " + title);
+        songlist.appendChild(node);
+    });
+}
 

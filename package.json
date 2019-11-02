@@ -26,8 +26,10 @@
   },
   "dependencies": {
     "@types/howler": "^2.1.1",
+    "bulma": "^0.8.0",
     "chart.js": "^2.8.0",
     "howler": "^2.1.2",
+    "redom": "^3.24.1",
     "rxjs": "^6.5.3"
   }
 }

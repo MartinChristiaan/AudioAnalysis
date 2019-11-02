@@ -5,7 +5,9 @@ export var chartDelta = 500
 export var keycodes = 
     {   
         2 : ["a","j"],
+        3 : ["a","s","j"],
         4 : ["a", "s", "j", "k"],
+        5 : ["a", "s","d", "j", "k"],        
         6 : ["a","s","d","j","k","l"]
     }
     ; //.,"d","f","g","h","j","k","l","m","n"]

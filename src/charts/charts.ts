@@ -1,8 +1,9 @@
 import { Chart } from "chart.js"
 import { chartDelta } from "../config";
-import {  IndexWindow } from "../TimeWindow";
-import { SongData, Energy } from "../loader";
+import { ControlBus } from "../bus";
+import { withLatestFrom, tap } from "rxjs/operators";
 
+import { Observable } from "rxjs";
 
 export function getData(curIdx, data: number[]) {
     let minIdx = Math.max(curIdx - chartDelta / 2, 0)
@@ -12,80 +13,53 @@ export function getData(curIdx, data: number[]) {
 }
 
 
-function alternatePointRadius(ctx,curIdx,highligths) {
+function alternatePointRadius(ctx,curIdx) {
     var index = ctx.dataIndex;
  
     if (index === curIdx) {
         return '4'
     }
-    else if (highligths.includes(index))
-    {
-        //console.log("highlight")
-        return '3'
-    }
+    // else if (highligths.includes(index))
+    // {
+    //     //console.log("highlight")
+    //     return '3'
+    // }
     return 0
 }
 
 
 
-export class UpdatingChart {
-    fullData: Energy[];
-    chart: Chart;
-    highlights: number[];
-    window :IndexWindow 
-    constructor(songdata:SongData) {
-        let timePerIndex = songdata.energies[1].time - songdata.energies[0].time 
-        this.window = new IndexWindow(4,-1,timePerIndex)
-        this.fullData = songdata.energies
-        var ctx = (document.getElementById('EnergyChart') as HTMLCanvasElement).getContext('2d');
+
+function updateData(songTime:number,values : number[],dt:number,chart:Chart)
+{
+
+    let margin = 5
+    let curIdx = Math.round(songTime/dt)
+    let lowIdx = Math.max(0,Math.round((songTime - margin/2)/dt))
+    let highIdx = Math.min(values.length,Math.round((songTime + margin)/dt))
+    let newData = values.slice(lowIdx,highIdx)        
+  
+    
+//        let curHighLiths = this.highlights.map(x=>  x - Math.max(0,idx - chartDelta/2)) 
+    chart.data.datasets[0].data = newData 
+    chart.data.datasets[0].pointRadius = (ctx) => alternatePointRadius(ctx,curIdx - lowIdx)
+    
+    chart.data.labels = newData.map((x,idx,arr)=> idx)
+    chart.update()
+}
+
+export function SetupUpdatingChart (bus:ControlBus,values$:Observable<number[]>,id){
+        var ctx = (document.getElementById(id) as HTMLCanvasElement).getContext('2d');
         Chart.defaults.global.elements.line.fill = false;
         Chart.defaults.global.animation = false;
-        this.highlights = songdata.buildupEnergies
-        this.chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-//                labels: labels,
-                datasets: [{
-                    labels: [],
-                    label: 'Energy',
-                    borderColor: "#3e95cd",
-                    data: [],
-                    pointRadius: 0// (ctx) => alternatePointRadius(ctx,this.curIdx,highligths),
-                },
-            ]
-            },
-            options: {
-                scales: {
-                    yAxes: [{
-                        display: true,
-
-                    }],
-                    xAxes: [{
-                        display: false,
-
-
-                    }]
-                }
-            },
-            
-        });
-    }
-    UpdateData(time:number)
-    {
-        let curIdx = this.window.UpdateWindow(time)
-        let newData = this.window.GetItemsInWindow(this.fullData) //getData(idx,this.fullData);            
-        
-         = Math.min(Math.max(0,idx - chartDelta/2),chartDelta/2)
-        
-        let curHighLiths = this.highlights.map(x=>  x - Math.max(0,idx - chartDelta/2)) 
-   
-
-        this.chart.data.datasets[0].data = newData 
-        this.chart.data.datasets[0].pointRadius = (ctx) => alternatePointRadius(ctx,this.curIdx,curHighLiths)
-        
-        this.chart.data.labels = newData.map((x,idx,arr)=> idx)
-        this.chart.update()
-    }
+        let chart = createChart(ctx,id);
+        bus.songTime$.pipe(
+            withLatestFrom(values$,bus.songAnalysis$)
+        ).subscribe(([time,values,analysis]) =>{
+            updateData(time,values,analysis.dt,chart)
+        }
+)
+    
    
 
 
@@ -93,6 +67,38 @@ export class UpdatingChart {
 }
 
 
+
+function createChart(ctx: CanvasRenderingContext2D,label) {
+    return new Chart(ctx, {
+        type: 'line',
+        data: {
+            //                labels: labels,
+            datasets: [{
+                labels: [],
+                label: label,
+                borderColor: "#3e95cd",
+                data: [],
+                pointRadius: 0 // (ctx) => alternatePointRadius(ctx,this.curIdx,highligths),
+            },
+            ]
+        },
+        options: {
+            scales: {
+                yAxes: [{
+                    display: true,
+                    ticks: {
+                        suggestedMin: 0,
+                        suggestedMax: 1
+                    }
+                }],
+                xAxes: [{
+                    display: false,
+                    
+                }]
+            }
+        },
+    });
+}
 
 // module.exports = {
 //     // parseJson : string -> string
