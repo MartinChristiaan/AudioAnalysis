@@ -5,11 +5,23 @@ import { rgba, getNoteColorRaw } from "../colors";
 export function drawParticle(particle: IArcDrawable, fill,screenShake:V2) {
     
     let {position,size} = particle
+    
+    // ctx.beginPath();
+    // ctx.moveTo(position.x, position.y);
+    // ctx.lineTo(position.x, position.y - 60);
+    // ctx.strokeStyle = trailfill
+    // ctx.stroke();
+
+
     ctx.beginPath();
     ctx.arc(position.x + screenShake.x,position.y + screenShake.y, size, 0, Math.PI * 2, false);
-    ctx.fillStyle = fill// fill
+    
+   
+    ctx.fillStyle = fill
     ctx.fill();
     ctx.restore();
+
+
    // console.log(position)
 }
 

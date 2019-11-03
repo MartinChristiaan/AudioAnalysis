@@ -1,6 +1,6 @@
-import { map2 } from "../util/funUtil";
-import { NoteState } from "../hitDetection";
-import { INoteMessage } from "./interfaces";
+import { map2, argWhere } from "../util/funUtil";
+import { NoteState, getOnsetFrequencyIndex } from "../hitDetection";
+import { INoteMessage, Circumstances } from "./interfaces";
 import { Onset } from "../types/types";
 import { hitMargin } from "./config";
 
@@ -42,9 +42,9 @@ export function createNoteMessageBasedOnSongtime(songtimeOnsets): INoteMessage {
 
 export function getNewNoteState(onset:Onset,state,msg)
 {
-    if (checkIfNoteMissed(onset, state, msg.songTime, hitMargin)) {
-        return NoteState.MISS
-    }
+    // if (checkIfNoteMissed(onset, state, msg.songTime, hitMargin)) {
+    //     return NoteState.MISS
+    // }
     if (msg.songTime - onset.time > 2)
     {
         return NoteState.DEAD
@@ -74,4 +74,38 @@ export function isBorn(note: Onset,noteState:NoteState, currentTime, margin) {
             return false
         }            
     }
+}
+
+ export class LeadParticle
+{
+    endTime = 1
+    index = 0
+    onset:Onset
+}
+
+export function getLeadParticles(onsets:Onset[],circumstances:Circumstances,mergeThreshold) : LeadParticle[]
+{
+    let leaders = argWhere(onsets,((fidx,idx) => {
+        if (idx > 0) {
+            if(onsets[idx].time-onsets[idx-1].time < mergeThreshold)
+            {
+                let prevFreq = getOnsetFrequencyIndex(onsets[idx-1],circumstances.numNotes)
+                let curFreq =  getOnsetFrequencyIndex(onsets[idx],circumstances.numNotes)
+                if(prevFreq == curFreq)
+                {
+                    return false
+                }
+            } 
+        }
+        return true
+    }))
+    return leaders.map((pidx,idx) => {
+        if (idx < leaders.length-1) {
+            let endIdx = leaders[idx + 1] - 1
+            let endTime = onsets[endIdx].time
+            return {endTime:endTime, index:pidx,onset:onsets[pidx]}
+        }
+        return {endTime:onsets[idx].time,index:pidx,onset:onsets[pidx]}
+    })
+    
 }

@@ -1,5 +1,6 @@
 import { Onset } from "../types/types";
 import { IHits, IMisses } from "../bus";
+import { LeadParticle } from "./state";
 
 
 export type INoteMessage = IHits | ISongtime | ISongChange | INoteDeaths | IMisses

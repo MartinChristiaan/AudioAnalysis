@@ -105,22 +105,3 @@ export function SetupSongLoading(bus:ControlBus)
     
 }
 
-
-
-
-
-
-
-
-
-
-function createSongList(availableSongs: string[]) {
-    let songlist = document.getElementById("control");
-    availableSongs.forEach((title,idx) => {
-        let node = document.createElement("button");
-        node.className = "button songTitle"
-        node.innerText = ((idx+1) + ". " + title);
-        songlist.appendChild(node);
-    });
-}
-

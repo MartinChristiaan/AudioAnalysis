@@ -1,13 +1,13 @@
 import { Onset } from "../types/types";
-import { Observable, merge, Subject, ConnectableObservable, zip } from "rxjs";
+import { Observable, merge, Subject, ConnectableObservable, zip, combineLatest } from "rxjs";
 import { map, withLatestFrom, scan, publish, tap } from "rxjs/operators";
 import { argWhere } from "../util/funUtil";
 import { NoteState } from "../hitDetection";
 import { INoteMessage, Particle, Circumstances } from "./interfaces";
-import { updateNoteState, createNoteMessageBasedOnSongtime } from "./state";
+import { updateNoteState, createNoteMessageBasedOnSongtime, getLeadParticles, LeadParticle } from "./state";
 import { updateExplosionParticles } from "./explosionState";
 import { drawParticle } from "./draw";
-import { createAliveParticle, createMissedParticle, getFill, getMissedFill, getExplosionFill } from "./dynamics";
+import { createAliveParticle, createMissedParticle, getFill, getMissedFill, getExplosionFill, getTrailFill } from "./dynamics";
 import { ControlBus, FeedbackBus } from "../bus";
 
 
@@ -21,6 +21,9 @@ function bufferPrevious(previousParticles : Particle[][][],particles : Particle[
     return newPP
 }
 
+
+
+
 export function setupNoteDrawing(bus:ControlBus,feedbackBus : FeedbackBus) {
 
     let songTimedOnsets$: Observable<INoteMessage> = bus.songTime$.pipe(
@@ -29,10 +32,9 @@ export function setupNoteDrawing(bus:ControlBus,feedbackBus : FeedbackBus) {
     )
     let deaths$ = new Subject<INoteMessage>()
     
-    merge(songTimedOnsets$, feedbackBus.hits$, deaths$).pipe(
+    merge(songTimedOnsets$, feedbackBus.hits$,feedbackBus.misses$, deaths$).pipe(
         scan(updateNoteState, new Array(1).fill(0).map(() => NoteState.UNBORN))
     ).subscribe(x => {bus.noteStates$.next(x)
-    
     })
 
     let explodedParticles$ = bus.songTime$.pipe(
@@ -41,28 +43,31 @@ export function setupNoteDrawing(bus:ControlBus,feedbackBus : FeedbackBus) {
         map(x => [x])
         )
         //scan(bufferPrevious,[]))
-   
+
+    // let leadParticles$ = new Subject<LeadParticle[]>()
+
+    // combineLatest(bus.circumstances$,bus.onsets$).pipe(
+    //     map(([circ,onsets]) => getLeadParticles(onsets,circ,0.4)
+    //     )
+    // ).subscribe(x => leadParticles$.next(x))
+
     let regularParticles$ = bus.circumstances$.pipe(
         
         withLatestFrom(bus.onsets$,  bus.noteStates$),
         map(([circumstances, onsets,  states ]) => {
             let aliveIdx = argWhere(states, (x) => x == NoteState.ALIVE)
-            let hitIdx = argWhere(states, (x) => x == NoteState.HIT)
-               return aliveIdx.map((idx) => { return createAliveParticle(onsets[idx],circumstances) })
-        }),//,
-       
-       
-    //   scan(bufferPrevious,[])
-       //map(x => [x])
-   
+            // let aliveLeaders = leaders.filter((leader) => aliveIdx.includes(leader.index))
+            return aliveIdx.map((idx) => { return createAliveParticle(onsets[idx],circumstances) })
+        }),
     )
 
     let missedParticles$ = bus.circumstances$.pipe(
         withLatestFrom(bus.onsets$, bus.noteStates$),
         map(([circumstances, onsets,  states]) => {
     
-            let aliveIdx = argWhere(states, (x) => x == NoteState.MISS)
-            return aliveIdx.map((idx) => { return createMissedParticle(onsets[idx], circumstances) })
+            let missedIdx = argWhere(states, (x) => x == NoteState.MISS)
+            // let missedLeaders = leaders.filter((leader) => missedIdx.includes(leader.index))         
+            return missedIdx.map((idx) => { return createMissedParticle(onsets[idx], circumstances) })
         })
     )
     explodedParticles$.pipe(withLatestFrom(bus.circumstances$,feedbackBus.screenShake$))

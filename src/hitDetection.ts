@@ -19,7 +19,7 @@ export enum InstrumentNoteState{
 
 }
 
-function getOnsetFrequencyIndex(onset,numNotes)
+export function getOnsetFrequencyIndex(onset,numNotes)
 {
     return Math.round(onset.frequency / 11.0 * (numNotes-1))
 }
@@ -57,19 +57,18 @@ function getHitNotes(onsets:Onset[],noteStates:NoteState[],instrumentNoteStates 
     return {kind: "hit",hitNotes : hitNotes,hitFrequencies : hitFrequencies} 
 }
 
-function getMissedNotes(onsets:Onset[],noteStates:NoteState[],instrumentNoteStates : InstrumentNoteState[],songTime:number,numNotes : number) : IMisses
+function getMissedNotes(onsets:Onset[],noteStates:NoteState[],songTime:number,numNotes : number) : IMisses
 {
     
-    let hitInstrumentNotes = argWhere(instrumentNoteStates,(state) => state == InstrumentNoteState.FIRED) 
     let missedNotes: number[] = []
     onsets.forEach((onset,noteIdx) => {
         //noteStates[noteIdx] == NoteState.ALIVE &&
          if ( noteStates[noteIdx] == NoteState.ALIVE && isBeyondHittableWindow(onset.time,songTime,0.1)) {
             let frequencyIdx =getOnsetFrequencyIndex(onset,numNotes)
-            if (hitInstrumentNotes.includes(frequencyIdx)){//) {
+            //) {
                 missedNotes.push(noteIdx)
 
-            }         
+                     
         }
     });
     return {kind: "miss",missedNotes : missedNotes} 
@@ -85,11 +84,11 @@ export function setupHitMissDetection({instrumentNoteStates$,noteStates$,numNote
         //tap(() => console.log("Hit at " + new Date().getSeconds()))
     ).subscribe((x) => hits$.next(x))                      
 
-    // songTime$.pipe(
-    //     withLatestFrom(instrumentNoteStates$,noteStates$,onsets$,numNotes$),
-    //     map(([t,ins,ns,onsets,numNotes]) => getMissedNotes(onsets,ns,ins,t,numNotes)),
-    //     filter((x:IMisses) => x.missedNotes.length > 0) ,
-    //     //tap(() => console.log("Hit at " + new Date().getSeconds()))
-    // ).subscribe((x) => misses$.next(x))                      
+    songTime$.pipe(
+        withLatestFrom(instrumentNoteStates$,noteStates$,onsets$,numNotes$),
+        map(([t,ins,ns,onsets,numNotes]) => getMissedNotes(onsets,ns,t,numNotes)),
+        filter((x:IMisses) => x.missedNotes.length > 0) ,
+        //tap(() => console.log("Hit at " + new Date().getSeconds()))
+    ).subscribe((x) => misses$.next(x))                      
 
-    }
+}

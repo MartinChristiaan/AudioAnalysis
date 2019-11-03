@@ -10,6 +10,7 @@ export interface timedValue {
     time: number;
 }
 
+
 export class SongAnalysisData
 {
     energies : number [];

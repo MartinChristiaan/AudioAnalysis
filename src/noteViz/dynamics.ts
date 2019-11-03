@@ -3,6 +3,7 @@ import { V2, Particle, IArcDrawable, Circumstances } from "./interfaces";
 import { canvas, ctx } from "../main";
 import { rgba, getNoteColorRaw } from "../colors";
 import { percentInWindow } from "../util/funUtil";
+import { LeadParticle } from "./state";
 
 export function calculatePositions(onset: Onset, {margin,currentTime,numNotes} : Circumstances): V2 {
     let percentTravelled = percentInWindow(2, 2 / 2, currentTime, onset.time)
@@ -26,19 +27,17 @@ export function updateExplosionParticle(particle:Particle){
 }
 
 
-export function createAliveParticle(onset: Onset,circumstances : Circumstances) : IArcDrawable
+export function createAliveParticle(onset:Onset,circumstances : Circumstances) : IArcDrawable
 {
     let position = calculatePositions(onset, circumstances)
-    //let color = getfill(onset,numNotes,position,12,level,alpha)
     return {position:position,size:10 + 10 * onset.energy,onset:onset} 
 }
 
-export function createMissedParticle(onset: Onset, circumstances : Circumstances) : IArcDrawable
+export function createMissedParticle(onset:Onset, circumstances : Circumstances) : IArcDrawable
 {
-    let position = calculatePositions(onset,circumstances)
-    
+    let position = calculatePositions(onset,circumstances)    
     position.y = Math.min(position.y,innerHeight)
-    return {position:position,size:10 + 50 * onset.energy,onset:onset} 
+    return {position:position,size:10 + 10 * onset.energy,onset:onset} 
 }
 
 export function getMissedFill({position,size}:IArcDrawable)
@@ -56,6 +55,13 @@ export function getMissedFill({position,size}:IArcDrawable)
     
 }
 
+export function getTrailFill({position,size,onset}:IArcDrawable,circumstances : Circumstances)
+{
+    let percent = Math.round(onset.frequency / 11.0 * circumstances.numNotes) / circumstances.numNotes 
+    let color = getNoteColorRaw(percent,circumstances.level)
+    return color.getHTMLValue()
+}
+
 export function getFill({position,size,onset}:IArcDrawable,circumstances : Circumstances,alpha)
 {
     let percent = Math.round(onset.frequency / 11.0 * circumstances.numNotes) / circumstances.numNotes 
@@ -66,6 +72,7 @@ export function getFill({position,size,onset}:IArcDrawable,circumstances : Circu
     var gradient = ctx.createRadialGradient(x, y, 0.1, x, y, size);
     gradient.addColorStop(0.1, "rgba(255,255,255," + 0 + ")");
     gradient.addColorStop(0.8,color.getHTMLValue() );
+
     let lowAlphaColor = new rgba(color.r,color.g,color.b,alpha*0.1).getHTMLValue()
     gradient.addColorStop(1, lowAlphaColor);
     return gradient

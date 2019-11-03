@@ -5,11 +5,13 @@ import { percentInWindow } from "./util/funUtil"
 import { ctx } from "./main"
 import { rgba } from "./colors"
 import { ControlBus, FeedbackBus, IHits, IMisses, IFalsePositives } from "./bus"
+import { NoteState } from "./hitDetection"
 
 class ScoreBoard {
     consecutiveHits: number
     multiplier: number
     score: number
+    rating : number
 }
 
 type IScoreBoardMessage = IHits | IMisses | IFalsePositives
@@ -63,48 +65,65 @@ function drawScoreBoard(scoreBoard: ScoreBoard, currentTime, deltaTime,duration)
     drawProgressBar(currentTime
         , 0
         , duration
-        , 150, 50, 200, 25, 20, '../data/time.png',
+        , 150, 50, 200, 25, 20, '../data/images/optimization-clock.svg',
         new rgba(218, 34, 255), new rgba(151, 51, 238)
     )
    
     drawProgressBar(scoreBoard.consecutiveHits
         , (scoreBoard.multiplier - 1) * 10
         , scoreBoard.multiplier * 10
-        , 150, 100, 200, 25, 20, '../data/score.png',
+        , 150, 100, 200, 25, 20, '../data/images/icons/mult.svg',
         new rgba(238, 9, 121), new rgba(255, 106, 0))
-
-    // drawProgressBar(song.e_cur * 2
-    //     , 0
-    //     , 1
-    //     , 150, 150, 200, 25, 20, '../data/bolt.png',
-    //     new rgba(241, 39, 17), new rgba(245, 175, 25))
-
-
+    let {rating} = scoreBoard
     ctx.strokeText(scoreBoard.multiplier + "x", 100, 200);
     ctx.strokeText((1/deltaTime).toFixed(0) + "fps", 100, 250);
-    //        ctx.strokeText("distance : " +  scoreManager.distance.toFixed(2), 100, 150);
-    //ctx.strokeText("energy ; " +  song.e_cur.toFixed(2), 100, 200);
+    ctx.strokeText(scoreBoard.rating.toFixed(1) + " rating", 100, 300);
+    const image = new Image(32,32); // Using optional size for image
+    image.src = '../data/images/icons/stars.png'
+    ctx.drawImage(image,0,0,1201*rating/5,241,100, 350, 32*rating, 32)
+
+ 
+
+    
 
 
+
+}
+function getPassedNotes(noteStates : NoteState[])
+{
+   return noteStates.reduce((acc,val) => {
+       if(val == NoteState.DEAD || val == NoteState.HIT || val == NoteState.MISS)
+       {
+           return acc + 1
+       }
+       else
+       {
+           return acc
+       }
+   })    
 }
 
 export function setupScoreBoard(bus: ControlBus,feedbackBus : FeedbackBus) {
 
     let deltaTime$ = bus.songTime$.pipe(pairwise(),map(([prevtime,time]) => time-prevtime),filter(dt => dt>0),throttleTime(100))
     let scoreBoard$ = merge(feedbackBus.hits$, feedbackBus.misses$, feedbackBus.falsePositives$).pipe(
-        scan((previousScoreBoard: ScoreBoard, msg: IScoreBoardMessage) => {
+        withLatestFrom(bus.noteStates$),
+        scan((previousScoreBoard: ScoreBoard, [msg,noteStates]) => {
             if (msg.kind == "hit") {
                 var consecutiveHits = previousScoreBoard.consecutiveHits + msg.hitNotes.length
-                var score = previousScoreBoard.score+msg.hitNotes.length
                 let multiplier = Math.floor(consecutiveHits / 10) + 1
-                return { consecutiveHits: consecutiveHits, score: score, multiplier: multiplier }
+                var score = previousScoreBoard.score+msg.hitNotes.length * multiplier
+                let rating = score/getPassedNotes(noteStates)
+                return { consecutiveHits: consecutiveHits, score: score, multiplier: multiplier,rating:rating }
                   
             }
             else {
-                return { consecutiveHits: 0, score: previousScoreBoard.score, multiplier: 1 }
+                console.log(msg.kind)
+                return { consecutiveHits: 0, score: previousScoreBoard.score, multiplier: 1,rating:previousScoreBoard.score/getPassedNotes(noteStates)}
 
             }
-        },{consecutiveHits:0,score:0,multiplier:1})
+        },{consecutiveHits:0,score:0,multiplier:1,rating:0.5}),
+        startWith({consecutiveHits:0,score:0,multiplier:1,rating:0.5})
     )
     scoreBoard$.pipe(
         pairwise(),

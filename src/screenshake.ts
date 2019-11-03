@@ -24,7 +24,7 @@ export function setupScreenshake(controlBus : ControlBus,feedbackBus : FeedbackB
             hits.hitNotes
             .map(idx => onsets[idx].energy)
             .reduce((acc,val) => acc +val)),
-        map(energy =>{return {kind:"hitEnergy",amount:energy*energy * 260}})
+        map(energy =>{return {kind:"hitEnergy",amount:energy*100}})
     )
 
     let timePassed$ =controlBus.songTime$.pipe(

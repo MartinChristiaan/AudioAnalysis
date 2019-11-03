@@ -1,4 +1,4 @@
-import { el, mount } from "redom";
+import { el, mount, list } from "redom";
 import { ControlBus } from "../bus";
 function div(classname)
 {
@@ -11,14 +11,35 @@ export function createMenu(songlist: string[],bus:ControlBus) {
   var menu = document.getElementById("menu");
 
   let sidebar = el("div");
-  sidebar.className = "sidebar";
+  sidebar.className = "sidebar card";
   mount(menu, sidebar);
-  mount(sidebar, el("h1", "test"));
+  
+  
+  let menulabel =el("p", "General") 
+  menulabel.className = "menu-label is-size-6	"
+
+  mount(sidebar,menulabel );
+
+  let menuitems = el("ul")
+  menuitems.className = "menu-list"
+  mount(sidebar,menuitems)
+
+  let items = ["songs"]
+  let listItem = el("li")
+  let actionItem = el("a","Songs")
+  actionItem.className = "is-active"
+  mount(listItem,actionItem)
+  mount(menuitems,listItem)  
+  
+
+
+
+
 
 bus.songTitle$.subscribe(x =>{
     menu.className = "menu away"
 })
-
+  let cnt = 0
   document.onkeydown = event => {
     if (event.key == "Escape") {
       if (menu.className == "menu") {
@@ -26,6 +47,10 @@ bus.songTitle$.subscribe(x =>{
       } else {
         menu.className = "menu";
       }
+    }
+    if (event.key == "l") {
+      cnt++
+      console.log(cnt)
     }
   };
 
