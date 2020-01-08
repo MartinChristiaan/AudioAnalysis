@@ -29,8 +29,8 @@ let feedbackBus = new FeedbackBus()
 // controlBus.animation$.subscribe(console.log)
 interval(0,animationFrame).subscribe(x => controlBus.animation$.next(x))
 
-SetupUpdatingChart(controlBus,controlBus.songAnalysis$.pipe(map(x => x.energies)),"EnergyChart")
-SetupUpdatingChart(controlBus,controlBus.songAnalysis$.pipe(map(x => x.similarity)),"SimilarityChart")
+// SetupUpdatingChart(controlBus,controlBus.songAnalysis$.pipe(map(x => x.energies)),"EnergyChart")
+// SetupUpdatingChart(controlBus,controlBus.songAnalysis$.pipe(map(x => x.similarity)),"SimilarityChart")
 
 
 

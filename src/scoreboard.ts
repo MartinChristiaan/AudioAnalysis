@@ -6,12 +6,13 @@ import { ctx } from "./main"
 import { rgba } from "./colors"
 import { ControlBus, FeedbackBus, IHits, IMisses, IFalsePositives } from "./bus"
 import { NoteState } from "./hitDetection"
+import { elementAt } from "rxjs/operators"
 
 class ScoreBoard {
     consecutiveHits: number
     multiplier: number
     score: number
-    rating : number
+    rating: number
 }
 
 type IScoreBoardMessage = IHits | IMisses | IFalsePositives
@@ -19,111 +20,108 @@ type IScoreBoardMessage = IHits | IMisses | IFalsePositives
 function frmt(num) {
     return Math.round((num + 0.0001) * 10) / 10;
 }
-function drawProgressBar(value: number, low: number, high: number
-    , xpos: number, ypos
-    , maxWidth, maxHeight
-    , fontsize, imsrc: string
-    , colorLow: rgba
-    , colorHigh: rgba) {
-    ctx.font = fontsize.toString() + "px Arial";
-    ctx.strokeStyle = "white";
-    ctx.lineWidth = 2;
 
+function svgel(elementname, attributes, parent) {
+    let element:SVGElement = document.createElementNS("http://www.w3.org/2000/svg", elementname)
 
-    //ctx.strokeText(low.toFixed(2), xpos - maxWidth/2, ypos);
-    var percent = (value - low) / (high - low)
-    if (isNaN(percent)) {
-        percent = 0.01
+    Object.keys(attributes).forEach(key => {
+        element.setAttribute(key, attributes[key])
+    });
+    parent.appendChild(element)
+    return element
+}
+
+function drawProgressBar(defs,x,y,
+                        color1,color2,
+                        id,imsource,svg,
+                        maxval){
+    let grad = svgel("linearGradient",{"id":id},defs)
+    svgel("stop",{"offset":"0%","stop-color":color1},grad)
+    svgel("stop",{"offset":"100%","stop-color":color2},grad)
+  
+    let iconsize = 30
+    let iconattr = {
+        "x": x,
+        "y": y,
+        "width": iconsize,
+        "height": iconsize,
+        "href": imsource//'../data/images/optimization-clock.svg'
     }
-    var my_gradient = ctx.createLinearGradient(xpos - maxWidth / 2, 0, xpos + maxWidth / 2, 0);
+    svgel("image", iconattr, svg)
+    let pbar = svgel("rect",{"x":x + iconsize + 15,"y":y + 5,
+        "width":200,"height":20,
+        "fill":`url(#${id})`,
+        "rx":"5"},svg)
+    let value = svgel("text",{"x":x+180 + iconsize ,"y" : y+20,"fill":"white"},svg)
+    value.textContent = maxval.toFixed(2)
+    let value2 = svgel("text",{"x":x+20 + iconsize ,"y" : y+20,"fill":"white"},svg)
+    value2.textContent = 0.3.toFixed(2)
 
-    my_gradient.addColorStop(0, colorLow.getHTMLValue());
-    my_gradient.addColorStop(1, colorHigh.getHTMLValue());
-
-    ctx.fillStyle = my_gradient//
-    ctx.fillRect(xpos - maxWidth / 2, ypos, maxWidth * percent, maxHeight)
-    if (value == undefined) {
-        value = low
+    function updateProgressBar(curval,maxval){
+        value.textContent = maxval.toFixed(2)
+        value2.textContent = curval.toFixed(2)
+        pbar.setAttribute("width",(curval/maxval * 200).toFixed(0)) 
     }
-    try {
-        ctx.strokeText(value.toFixed(2), xpos - maxWidth / 2, ypos + maxHeight - 4);
-        ctx.strokeText(high.toFixed(2), xpos + maxWidth / 2 + 3, ypos + maxHeight - 4);
-    } catch (error) { }
-    const image = new Image(32, 32); // Using optional size for image
-    image.src = imsrc
-    ctx.drawImage(image, xpos - maxWidth / 2 - 40, ypos - 3, 32, 32)
+    return updateProgressBar
 
 }
 
-function drawScoreBoard(scoreBoard: ScoreBoard, currentTime, deltaTime,duration) {
+let svg = document.getElementById("scoreboard")
 
+let defs = svgel("defs", {}, svg)
+let updateTime = drawProgressBar(defs,20,20,"rgb(218, 34, 255)","rgb(151, 51, 238)","time"
+,'../data/images/optimization-clock.svg',svg,2)
+let updateConsequtiveHits = drawProgressBar(defs,20,60,"rgb(238, 9, 121)","rgb(255, 106, 0)","hits"
+,'../data/images/icons/mult.svg',svg,10)
+let multiplierText = svgel("text",{"x":70 ,"y" : 120,"fill":"white"},svg)
+multiplierText.textContent = "1X"
 
-    ctx.lineWidth = 2;
-    ctx.font = "20px Arial";
-    ctx.strokeStyle = "white";
+let ratingmask = svgel("mask",{"id":"ratingmask"},svg)
+let ratingmaskrect = svgel("rect",{"x" : 80,"y":103,"width":90,"height":25,"fill":"white"},ratingmask)
+svgel("image",{"href":'../data/images/icons/stars.png'
+                ,"x" : 80,"y":103,"width":180,"height":25,
+                "mask":"url(#ratingmask)"},svg)
 
-    drawProgressBar(currentTime
-        , 0
-        , duration
-        , 150, 50, 200, 25, 20, '../data/images/optimization-clock.svg',
-        new rgba(218, 34, 255), new rgba(151, 51, 238)
-    )
-   
-    drawProgressBar(scoreBoard.consecutiveHits
-        , (scoreBoard.multiplier - 1) * 10
-        , scoreBoard.multiplier * 10
-        , 150, 100, 200, 25, 20, '../data/images/icons/mult.svg',
-        new rgba(238, 9, 121), new rgba(255, 106, 0))
-    let {rating} = scoreBoard
-    ctx.strokeText(scoreBoard.multiplier + "x", 100, 200);
-    ctx.strokeText((1/deltaTime).toFixed(0) + "fps", 100, 250);
-    ctx.strokeText(scoreBoard.rating.toFixed(1) + " rating", 100, 300);
-    const image = new Image(32,32); // Using optional size for image
-    image.src = '../data/images/icons/stars.png'
-    ctx.drawImage(image,0,0,1201*rating/5,241,100, 350, 32*rating, 32)
-
- 
-
-    
-
-
+function updateScoreBoard(scoreboard : ScoreBoard, currentTime, deltaTime,duration){
+    updateTime(currentTime,duration)
+    updateConsequtiveHits(scoreboard.consecutiveHits%10,10)
+    ratingmaskrect.setAttribute("width",(180/5*scoreboard.rating).toFixed(1))
 
 }
-function getPassedNotes(noteStates : NoteState[])
-{
-   return noteStates.reduce((acc,val) => {
-       if(val == NoteState.DEAD || val == NoteState.HIT || val == NoteState.MISS)
-       {
-           return acc + 1
-       }
-       else
-       {
-           return acc
-       }
-   })    
+
+
+function getPassedNotes(noteStates: NoteState[]) {
+    return noteStates.reduce((acc, val) => {
+        if (val == NoteState.DEAD || val == NoteState.HIT || val == NoteState.MISS) {
+            return acc + 1
+        }
+        else {
+            return acc
+        }
+    })
 }
 
-export function setupScoreBoard(bus: ControlBus,feedbackBus : FeedbackBus) {
+export function setupScoreBoard(bus: ControlBus, feedbackBus: FeedbackBus) {
 
-    let deltaTime$ = bus.songTime$.pipe(pairwise(),map(([prevtime,time]) => time-prevtime),filter(dt => dt>0),throttleTime(100))
+    let deltaTime$ = bus.songTime$.pipe(pairwise(), map(([prevtime, time]) => time - prevtime), filter(dt => dt > 0), throttleTime(100))
     let scoreBoard$ = merge(feedbackBus.hits$, feedbackBus.misses$, feedbackBus.falsePositives$).pipe(
         withLatestFrom(bus.noteStates$),
-        scan((previousScoreBoard: ScoreBoard, [msg,noteStates]) => {
+        scan((previousScoreBoard: ScoreBoard, [msg, noteStates]) => {
             if (msg.kind == "hit") {
                 var consecutiveHits = previousScoreBoard.consecutiveHits + msg.hitNotes.length
                 let multiplier = Math.floor(consecutiveHits / 10) + 1
-                var score = previousScoreBoard.score+msg.hitNotes.length * multiplier
-                let rating = score/getPassedNotes(noteStates)
-                return { consecutiveHits: consecutiveHits, score: score, multiplier: multiplier,rating:rating }
-                  
+                var score = previousScoreBoard.score + msg.hitNotes.length * multiplier
+                let rating = score / getPassedNotes(noteStates)
+                return { consecutiveHits: consecutiveHits, score: score, multiplier: multiplier, rating: rating }
+
             }
             else {
                 console.log(msg.kind)
-                return { consecutiveHits: 0, score: previousScoreBoard.score, multiplier: 1,rating:previousScoreBoard.score/getPassedNotes(noteStates)}
+                return { consecutiveHits: 0, score: previousScoreBoard.score, multiplier: 1, rating: previousScoreBoard.score / getPassedNotes(noteStates) }
 
             }
-        },{consecutiveHits:0,score:0,multiplier:1,rating:0.5}),
-        startWith({consecutiveHits:0,score:0,multiplier:1,rating:0.5})
+        }, { consecutiveHits: 0, score: 0, multiplier: 1, rating: 0.5 }),
+        startWith({ consecutiveHits: 0, score: 0, multiplier: 1, rating: 0.5 })
     )
     scoreBoard$.pipe(
         pairwise(),
@@ -132,30 +130,29 @@ export function setupScoreBoard(bus: ControlBus,feedbackBus : FeedbackBus) {
         scan((previous, delta) => previous + delta, 1),
         startWith(1)
     ).subscribe(x => bus.multiplier$.next(x))
-    
+    // drawscoreboard -> update scoreboard
     bus.songTime$.pipe(
         withLatestFrom(scoreBoard$, bus.songPlayer$,deltaTime$)
-    ).subscribe(([songTime, scoreBoard, songplayer,deltaTime]) => drawScoreBoard(scoreBoard, songTime,deltaTime, songplayer.duration()))
+    ).subscribe(([songTime, scoreBoard, songplayer,deltaTime]) => updateScoreBoard(scoreBoard, songTime,deltaTime, songplayer.duration()))
 
     var levelup = new Howl({
         src: ['../sfx/levelup.wav']
-      });
+    });
     levelup.volume(0.3)
     var reset = new Howl({
         src: ['../sfx/reset.wav']
-      });
+    });
     reset.volume(0.3)
     bus.multiplier$.pipe(
         pairwise(),
-        
-    ).subscribe(([previous,updated]) =>{
+
+    ).subscribe(([previous, updated]) => {
         if (previous < updated) {
             levelup.play()
-        }else
-        {
+        } else {
             reset.play()
-        }            
+        }
     })
-    
-      
+
+
 }
