@@ -25,7 +25,7 @@
 .songGrid
 {
 
-  background-image: url(../data/images/cardback.jpg);
+  background-image: url(../data/images/bg.png);
   background-color:#222222 ;
   flex-grow: 5;
   display: grid;

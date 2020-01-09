@@ -54,7 +54,7 @@ function loadSong(source:string)
         src: ['../music/' + source + ".mp3"]
     });
   
-    sound.volume(0)
+    sound.volume(1)
     sound.play()
     sound.seek()
     return new Promise((resolve,fail) => waitUntilSongStarts(sound,resolve))

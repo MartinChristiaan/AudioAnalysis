@@ -2,6 +2,7 @@
 {
   background-color: black !important;        
 }
+html { overflow-y: hidden; }
 #container {
    display: flex;
    background-color: aqua; /* or inline-flex */
@@ -13,7 +14,7 @@
 #scoreboard{
   position: absolute;
   top: 0px;
-  z-index: 2;
+  z-index: 1;
 }
 #control{
    
