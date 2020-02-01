@@ -11,6 +11,39 @@ import { animationFrame } from "rxjs/internal/scheduler/animationFrame";
 import { V2 } from "./noteViz/interfaces";
 let y = (2 / 3) * innerHeight
 
+function roundRect(ctx, x, y, width, height, radius) {
+   
+    if (typeof radius === 'undefined') {
+      radius = 5;
+    }
+    if (typeof radius === 'number') {
+      radius = {tl: radius, tr: radius, br: radius, bl: radius};
+    } else {
+      var defaultRadius = {tl: 0, tr: 0, br: 0, bl: 0};
+      for (var side in defaultRadius) {
+        radius[side] = radius[side] || defaultRadius[side];
+      }
+    }
+    ctx.beginPath();
+    ctx.moveTo(x + radius.tl, y);
+    ctx.lineTo(x + width - radius.tr, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
+    ctx.lineTo(x + width, y + height - radius.br);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
+    ctx.lineTo(x + radius.bl, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
+    ctx.lineTo(x, y + radius.tl);
+    ctx.quadraticCurveTo(x, y, x + radius.tl, y);
+    ctx.closePath();
+
+    ctx.fill();
+    // if (stroke) {
+    //   ctx.stroke();
+    // }
+  
+  }
+
+
 function drawInstrumentNote(noteIndex, numNotes, instrumentNoteState: InstrumentNoteState, level,screenShake:V2) {
     var x_start = (noteIndex) / (numNotes) * canvas.width
     var x_stop = (noteIndex + 1) / (numNotes) * canvas.width
@@ -19,22 +52,33 @@ function drawInstrumentNote(noteIndex, numNotes, instrumentNoteState: Instrument
     ctx.beginPath();
     //
     ctx.lineWidth = 10;
+    let notecolor = ""
     if (instrumentNoteState == InstrumentNoteState.FIRED) {
         //ctx.filter = 'blur(2px)'
-        ctx.strokeStyle = "white"
+        notecolor = "white"
+  //      ctx.strokeStyle = "white"
     }
     else if (instrumentNoteState == InstrumentNoteState.FALSEPOSITIVE) {
-        ctx.strokeStyle = "red"
+        notecolor = "red"
+//        ctx.strokeStyle = "red"
     }
     else {
         ctx.filter = "none"
-        ctx.strokeStyle = getNoteColor((noteIndex + 1) / numNotes, level)
+        notecolor = getNoteColor((noteIndex + 1) / numNotes, level)
     }
+    ctx.strokeStyle = notecolor
     ctx.moveTo(x_start + screenShake.x, y + screenShake.y)
     ctx.lineTo(x_stop + screenShake.x, y + screenShake.y)
     ctx.stroke();
     ctx.restore()
 
+    let tootlipsize = 50
+    ctx.fillStyle = notecolor
+    roundRect(ctx,x_start - tootlipsize/2 + 0.5 / numNotes * canvas.width, y + 50,tootlipsize,tootlipsize,5)
+    ctx.restore()
+    ctx.fillStyle = "white"
+    ctx.font = '20px Arial';//
+    ctx.fillText(keycodes[numNotes][noteIndex],x_start  + 0.5 / numNotes * canvas.width - 5,y+81)
 }
 
 class InstrumentTimerState
@@ -46,6 +90,7 @@ class InstrumentTimerState
          this.hitsInWindow = hitsInWindow
     }     
 }
+
 
 
 function updateInstrumentNoteState(timers:InstrumentTimerState[], msg: InstrumentMessage) {
