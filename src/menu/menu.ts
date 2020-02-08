@@ -10,35 +10,11 @@ function div(classname)
 export function createMenu(songlist: string[],bus:ControlBus) {
   var menu = document.getElementById("menu");
 
-  let sidebar = el("div");
-  sidebar.className = "sidebar card";
-  mount(menu, sidebar);
-  
-  
-  let menulabel =el("p", "General") 
-  menulabel.className = "menu-label is-size-6	"
-
-  mount(sidebar,menulabel );
-
-  let menuitems = el("ul")
-  menuitems.className = "menu-list"
-  mount(sidebar,menuitems)
-
-  let items = ["songs"]
-  let listItem = el("li")
-  let actionItem = el("a","Songs")
-  actionItem.className = "is-active"
-  mount(listItem,actionItem)
-  mount(menuitems,listItem)  
-  
 
 
-
-
-
-bus.songTitle$.subscribe(x =>{
+  bus.songTitle$.subscribe(x =>{
     menu.className = "menu away"
-})
+  })
   let cnt = 0
   document.onkeydown = event => {
     if (event.key == "Escape") {
@@ -53,30 +29,24 @@ bus.songTitle$.subscribe(x =>{
       console.log(cnt)
     }
   };
-
-  let songgrid = el("div");
-  songgrid.className = "songGrid";
-
-  mount(menu, songgrid);
-
+  let parent= document.getElementsByClassName("sidebar")[0]
+  
+  
   songlist.forEach(songname => {
     let card = el("div");
-    card.className = "songCard";
-    mount(songgrid, card);
+    card.className = "songelement";
+    mount(parent, card);
     card.onclick = () => {
       bus.songTitle$.next(songname)
     };
-
-    let avatar = el("div")
-    avatar.className = "avatar"
-    mount(card,avatar)
-
-    let name = el("div")
-    name.className = "name"
+ 
     let nametext = el("p",songname)
-    nametext.className = "nameText"
-    mount(name,nametext)
-    mount(card,name)
+    nametext.className = "songname"
+    mount(card,nametext)
+
+    let durationtext = el("p","3:14")
+    durationtext.className = "songduration"
+    mount(card,durationtext)
 
     //let stats = div("stats")
 

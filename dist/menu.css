@@ -1,12 +1,14 @@
+
 .menu
 {
   position: relative;
   width: 100%;
-  height: 100%;  
-  background-color: white;
+  height: 100vh;
+  background-image: url(../data/images/backgroundmusic.png);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
   transition: 1s;
-  display: flex;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Roboto';
   font-size: 15px;
  color: white;
  z-index: 2;
@@ -19,103 +21,53 @@
 }
 .sidebar
 {
-  background: #222222;  /* fallback for old browsers */
-  
-  flex-grow: 1;
+  position: absolute;
+  background: rgba(22, 22,22, 0.8); 
+  width: 20%;
+  z-index: 3;
+  height: 100%;
 }
-.songGrid
+.titlescreen
 {
-
-  background-image: url(../data/images/bg.png);
-  background-color:#222222 ;
-  flex-grow: 5;
-  display: grid;
-  align-items: right;
-  padding: 20px;  
-  
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  overflow-x: hidden; 
-  grid-row-gap: 20px;
-  overflow-y: scroll;
-}
-
-.songCard
-{
-  background-image: url("../data/images/cardback.jpg");
-  background-color: #cccccc;
-  width: 250px;
-
-  height: 350px;
-  background-size: 450px 350px;
-  box-shadow: 10px 10px 4px rgba(0, 0, 0, .5);
-  align-items: center;
-  overflow: hidden;
-}
-.songCard:hover
-{
-  border: 2px solid #3d8eeb;
-  overflow: auto;
-
-}
-.avatar
-{
-  position: relative;
-  align-self: center;
-  top: 20px;
-  left:60px;
-  width: 120px;
-  height: 120px;
-  background-image: url("../data/images/musicicon.png");
-  background-size: 120px 120px;
-  border-radius: 300px;
-}
-
-
-
-.nameText
-{
-  vertical-align: 50%;
+  top: 3em;
+  z-index: 2;
+  position: absolute;
+  font-family: Roboto;
+  font-size: 50px;
   text-align: center;
-  font-size: 15px
-
+  width: 100%;
+  height: 100%;
+}
+.title
+{
+  color: white;
+  font-size: 100px;
 }
 .name
 {
-  position: relative;
-  align-self: center;
-  top: 50px;
-  width: 100%;
-  height: 40px;
-  background-image: linear-gradient(to right,rgba(28, 28, 28, 0.116),rgba(57, 159, 242, 0.233));
-
+  font-size: 40px;
+  font-style: italic;
 }
-.stats
+.songelement
 {
-  position: relative;
-  align-self: center;
-  top: 60px;
-  width: 100%;
-  height: 130px;
-  background-image: linear-gradient(to right,rgba(28, 28, 28, 0.116),rgba(57, 159, 242, 0.233));
-
+  opacity: 80%;
+  color: white;
+  text-align: left;
+  padding: 20px;
 }
-.stat{
-  position: relative;
-  width: 100%;
-  height: 40px;
-  padding: 10px;
-
-}
-.difficultyicon
+.songelement:hover
 {
-  align-self: left;
-  width: 30px;
+  opacity: 100%;
+  background-color: rgba(22, 22,22, 0.8);
 }
-.star
+
+
+.songname
 {
-  align-self: left;
-  width: 10px;
-  position: relative;
-  left: 4px;
-  top: -7px;
+  font-size: 23px;
+}
+
+.songduration
+{
+
 }

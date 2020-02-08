@@ -15,7 +15,7 @@ datadir = "../src/data/"
 musicdir = "../music/"
 from tqdm import tqdm
 from multiprocessing import Pool
-from anistrophicDiffusion import anisotropic_diffusion
+#from anistrophicDiffusion import anisotropic_diffusion
 #%%
 
 songdatas = []
@@ -126,12 +126,12 @@ def process(src):
         totalSimilarity2 = np.convolve(sim, np.ones(400), 'same') / 400
         totalSimilarity2 = (totalSimilarity2-min(totalSimilarity2))/(max(totalSimilarity2) - min(totalSimilarity2))
         
-        ani = anisotropic_diffusion(sim,10000,200,.2)
-        ani = ani/max(ani)    
-        
+        #ani = #anisotropic_diffusion(sim,10000,200,.2)
+        #ani = #ani/max(ani)    
+        sim = sim/max(sim)
         e = librosa.feature.rms(y)
         e = scipy.signal.resample(e[0],C.shape[1])
-        e = anisotropic_diffusion(e,10000,200,.2)
+        #e = anisotropic_diffusion(e,10000,200,.2)
         e = e / max(e)
         return (t_onset,f_onset,e_onset,e,ani,buildups_onset,buildups_e,src)
     except:
