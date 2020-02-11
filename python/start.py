@@ -140,6 +140,7 @@ def process(src):
         #f_onset = np.round(f_onset/np.max(f_onset) * (no_notes-1)) // done in js
 
 #%% write data to ts library
+print("Starting2")
 import time
 if __name__ == '__main__':
     start = time.time()
@@ -147,7 +148,7 @@ if __name__ == '__main__':
     p = Pool(6)
     songdatas = p.map(process, srcs)
     print("Time Taken {} " .format(time.time()-start))
-    
+print("Starting3")
 #%% write data to ts library
 def np_arr_to_str(arr):
    return ",".join([str(item) for item in arr]) + "\n"
