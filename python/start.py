@@ -15,7 +15,8 @@ datadir = "../src/data/"
 musicdir = "../music/"
 from tqdm import tqdm
 from multiprocessing import Pool
-#from anistrophicDiffusion import anisotropic_diffusion
+from anistrophicDiffusion import anisotropic_diffusion
+import time
 #%%
 
 songdatas = []
@@ -23,26 +24,30 @@ songdatas = []
 srcs = os.listdir(musicdir)
 def process(src):
     try:
+        print(f"Performing analysis on {src}")
         dst = src[:-4] +".wav"
-     
+        start = time.time()
+   
         #print(musicdir+ src)
+        
         sound = AudioSegment.from_mp3(musicdir + src)
         sound.export(musicdir + dst, format="wav")
         
-        #print("Performing analysis")
-        #print("Loading Wav")
         
+        print(f"Exporting wav took {time.time()-start} seconds")
+        start = time.time()
         y, sr = librosa.load(musicdir + dst)
         os.remove(musicdir + dst)
         
-        #print("hpss")
+        print(f"loading wav took {time.time()-start} seconds")
+        print("hpss")
         
         y_harmonic, y_percussive = librosa.effects.hpss(y)
-        #print("chroma")
+        print("chroma")
         C = librosa.feature.chroma_cqt(y=y_harmonic, sr=sr, bins_per_octave=12)
-        #print("tempo")
+        print("tempo")
         tempo, frames = librosa.beat.beat_track(y=y,sr=sr)
-        #print("onset")
+        print("onset")
     #onset = librosa.onset.onset_detect(y,sr)
        
        
@@ -121,34 +126,37 @@ def process(src):
                 buildups_e += [ons]
                 
         rec = librosa.segment.recurrence_matrix(C, mode='affinity')
-        rec = librosa.segment.recurrence_matrix(C, mode='affinity')
         sim = np.mean(rec,axis=1)
         totalSimilarity2 = np.convolve(sim, np.ones(400), 'same') / 400
         totalSimilarity2 = (totalSimilarity2-min(totalSimilarity2))/(max(totalSimilarity2) - min(totalSimilarity2))
         
-        #ani = #anisotropic_diffusion(sim,10000,200,.2)
-        #ani = #ani/max(ani)    
+        ani = anisotropic_diffusion(sim,10000,200,.2)
+        ani = ani/max(ani)    
         sim = sim/max(sim)
         e = librosa.feature.rms(y)
         e = scipy.signal.resample(e[0],C.shape[1])
         #e = anisotropic_diffusion(e,10000,200,.2)
         e = e / max(e)
-        return (t_onset,f_onset,e_onset,e,ani,buildups_onset,buildups_e,src)
+        return (t_onset,f_onset,e_onset,e,sim,buildups_onset,buildups_e,src)
     except:
         print("failed " + src)
         return([],[],[],[],[],[],[])
         #f_onset = np.round(f_onset/np.max(f_onset) * (no_notes-1)) // done in js
 
 #%% write data to ts library
-print("Starting2")
+
 import time
 if __name__ == '__main__':
     start = time.time()
     print("Starting")
-    p = Pool(6)
-    songdatas = p.map(process, srcs)
+    #p = Pool(6)
+    for src in srcs:
+        process(src)
+    #songdatas = p.map(process, srcs)
     print("Time Taken {} " .format(time.time()-start))
 print("Starting3")
+
+#%%
 #%% write data to ts library
 def np_arr_to_str(arr):
    return ",".join([str(item) for item in arr]) + "\n"

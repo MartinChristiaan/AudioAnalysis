@@ -4,10 +4,10 @@ block_cipher = None
 
 
 a = Analysis(['main.py'],
-             pathex=['C:\\Users\\mvanleeuwen\\source\\repos\\AudioAnalysis\\python'],
+             pathex=['G:\\Repos\\AudioAnalysis\\python'],
              binaries=[],
-             datas=[],
-             hiddenimports=[],
+             datas=[('C:\\ProgramData\\Anaconda3\\Lib\\site-packages\\resampy\\data\\*.npz', 'resampy/data')],
+             hiddenimports=['sklearn.utils._cython_blas','scipy._lib.messagestream', 'sklearn.tree', 'sklearn.neighbors.typedefs', 'sklearn.neighbors.quad_tree', 'sklearn.tree._utils'],
              hookspath=[],
              runtime_hooks=[],
              excludes=[],
