@@ -3,7 +3,7 @@ import { IHits, IMisses } from "../bus";
 import { LeadParticle } from "./state";
 
 
-export type INoteMessage = IHits | ISongtime | ISongChange | INoteDeaths | IMisses
+export type INoteMessage = IHits | ISongtime | ISongChange | IDataUpdate | INoteDeaths | IMisses
 
 export interface ISongtime {
     kind: "timeUpdate";
@@ -23,6 +23,11 @@ export interface ISongChange {
     kind: "songChange"
     numNotes: number
 }
+export interface IDataUpdate {
+    kind: "dataUpdate"
+    numNotes: number
+}
+
 export interface INoteDeaths {
     kind: "noteDeaths"
     deaths: number[]

@@ -59,8 +59,6 @@ fromEvent(document,'keydown').pipe(
 
 setupScoreBoard(controlBus,feedbackBus)
 
-
-
 setupInstrumentDrawing(controlBus,feedbackBus) 
 setupHitMissDetection(controlBus,feedbackBus)
 setupNoteDrawing(controlBus,feedbackBus)

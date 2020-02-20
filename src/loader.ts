@@ -1,5 +1,5 @@
 import { fromEvent, ConnectableObservable, zip } from "rxjs";
-import { map, filter, switchMap, publish, scan, buffer, pairwise, throttleTime, concatMap, observeOn } from "rxjs/operators";
+import { map, filter, switchMap, publish, scan, buffer, pairwise, throttleTime, concatMap, observeOn, withLatestFrom } from "rxjs/operators";
 
 import { Howl } from 'howler';
 import { SongAnalysisData as SongAnalysis } from "./types/types";
@@ -100,6 +100,12 @@ export function SetupSongLoading(bus:ControlBus)
 
     zip(bus.songTitle$,bus.songPlayer$).pipe(
         map(([title,player]) => loadSongAnalysis(title,player))
+    ).subscribe(x => bus.songAnalysis$.next(x))
+
+    bus.songTime$.pipe(
+        filter(time => time>1),
+        withLatestFrom(bus.songTitle$,bus.songPlayer$),
+        map(([time,title,player]) => loadSongAnalysis(title,player))
     ).subscribe(x => bus.songAnalysis$.next(x))
     
     

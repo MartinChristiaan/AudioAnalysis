@@ -9,7 +9,13 @@ export function updateNoteState(noteStates: NoteState[], msg: INoteMessage) {
         console.log("Refreshing arary")
         return new Array(msg.numNotes).fill(0).map(x => NoteState.UNBORN);
     }
+    
     else if (msg.kind == "timeUpdate") {
+        if (msg.onsets.length > noteStates.length)
+        {
+            let newnotes = new Array(msg.onsets.length - noteStates.length).fill(0).map(x => NoteState.UNBORN)
+            return noteStates.concat(newnotes)
+        } 
         return map2(noteStates, msg.onsets, (state, onset) => getNewNoteState(onset as Onset, state, msg));
     }
     else if (msg.kind == "hit") {
