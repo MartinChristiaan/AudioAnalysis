@@ -2,7 +2,6 @@ export class Onset implements timedValue
 {
     time:number
     frequency:number
-    isBuildup:boolean
     energy:number
 }
 
@@ -20,7 +19,7 @@ export class SongAnalysisData
     buildupEnergies: number [];
     maxFreq:number = 11
     dt  =1
-    constructor(t_onset,f_onset,e_onset,e,similarity,buildupOnsets,buildupEnergies,duration)
+    constructor(t_onset,f_onset,e_onset,e,duration)
     {   this.dt = duration / e.length
         this.onsets = Array.from({length: f_onset.length}, (_, id) =>  
         {
@@ -28,11 +27,9 @@ export class SongAnalysisData
                 time:t_onset[id],
                 frequency:f_onset[id],
                 energy :e_onset[id],
-                isBuildup :buildupOnsets.includes(id)
                     } 
             return onset
         })
-        this.similarity = similarity
         this.energies = e 
 
 

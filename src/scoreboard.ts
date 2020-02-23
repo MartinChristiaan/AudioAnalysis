@@ -45,7 +45,7 @@ function drawProgressBar(defs,x,y,
         "y": y,
         "width": iconsize,
         "height": iconsize,
-        "href": imsource//'../data/images/optimization-clock.svg'
+        "href": imsource//'/static/data/images/optimization-clock.svg'
     }
     svgel("image", iconattr, svg)
     let pbar = svgel("rect",{"x":x + iconsize + 15,"y":y + 5,
@@ -70,15 +70,15 @@ let svg = document.getElementById("scoreboard")
 
 let defs = svgel("defs", {}, svg)
 let updateTime = drawProgressBar(defs,20,20,"rgb(218, 34, 255)","rgb(151, 51, 238)","time"
-,'../data/images/optimization-clock.svg',svg,2)
+,'/static/data/images/optimization-clock.svg',svg,2)
 let updateConsequtiveHits = drawProgressBar(defs,20,60,"rgb(238, 9, 121)","rgb(255, 106, 0)","hits"
-,'../data/images/icons/mult.svg',svg,10)
+,'/static/data/images/icons/mult.svg',svg,10)
 let multiplierText = svgel("text",{"x":70 ,"y" : 120,"fill":"white"},svg)
 multiplierText.textContent = "1X"
 
 let ratingmask = svgel("mask",{"id":"ratingmask"},svg)
 let ratingmaskrect = svgel("rect",{"x" : 80,"y":103,"width":90,"height":25,"fill":"white"},ratingmask)
-svgel("image",{"href":'../data/images/icons/stars.png'
+svgel("image",{"href":'/static/data/images/icons/stars.png'
                 ,"x" : 80,"y":103,"width":180,"height":25,
                 "mask":"url(#ratingmask)"},svg)
 
@@ -136,11 +136,11 @@ export function setupScoreBoard(bus: ControlBus, feedbackBus: FeedbackBus) {
     ).subscribe(([songTime, scoreBoard, songplayer,deltaTime]) => updateScoreBoard(scoreBoard, songTime,deltaTime, songplayer.duration()))
 
     var levelup = new Howl({
-        src: ['../sfx/levelup.wav']
+        src: ['/static/sfx/levelup.wav']
     });
     levelup.volume(0.3)
     var reset = new Howl({
-        src: ['../sfx/reset.wav']
+        src: ['/static/sfx/reset.wav']
     });
     reset.volume(0.3)
     bus.multiplier$.pipe(

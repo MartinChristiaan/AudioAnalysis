@@ -1,10 +1,21 @@
 # -*- coding: utf-8 -*-
 import os
 import json
-musicfolder = os.getcwd() + "/music"
+import process_song
+musicfolder = os.getcwd() + "/static/music/"
 
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 app = Flask(__name__)
+
+class State():
+    def __init__(self):
+        self.processor = None
+        
+state= State()
+
+@app.route("/")
+def main():
+   return render_template('index.html')
 
 @app.route("/musicfolder")
 def get_musicfolder():
@@ -12,14 +23,23 @@ def get_musicfolder():
 
 @app.route("/songs")
 def get_songs():
-   return json.dumps(os.listdir(musicfolder))
+   return "\n".join(os.listdir(musicfolder))
 
 @app.route('/select_song',methods=['PUT'])
 def select_song():
-   songname = request.form['name']
+   songname =request.data.decode("utf-8")  
+   state.processor = process_song.SongProcessor(musicfolder,songname)
    
+   return update_data()
+#   songname = request.form['songname']
+#   print(songname)
 
+@app.route('/update_data')
+def update_data():
+   result = state.processor.process_period()
+   print(result)
+
+   return result
 if __name__ == '__main__':
-   # app.static_url_path = f"{app.root_path}\\dist"
-   # print(app.static_url_path)
+
    app.run(debug = True)

@@ -63,7 +63,7 @@ def process(y,sr):
 # song is split up in x second intervals
 period = 5
 def np_arr_to_str(arr):
-   return ",".join([str(item) for item in arr]) + "\n"
+   return ",".join([str(item) for item in arr]) 
 datadir =  "../data/"
 songdatadir = datadir+"songs/"   
 class SongProcessor():
@@ -78,9 +78,10 @@ class SongProcessor():
         self.musicdir = musicdir
         self.songname = songname
         y,self.sr = librosa.load(self.musicdir + self.songname,duration=0.01,offset = 0)
-        
+  
 
     def process_period(self):
+   
         t_start = self.cur_period * period
         y, sr = librosa.load(self.musicdir + self.songname,duration=period,offset = t_start)
         t_onset,f_onset,e_onset,e = process(y,sr)
@@ -91,20 +92,21 @@ class SongProcessor():
         self.cur_period+=1
         items = [self.t_onset,self.f_onset,self.e_onset,self.e]
         lines = [np_arr_to_str(item) for item in items]
-        f = open("data/currentsong.txt",'w')
-        f.writelines(lines)
-        f.close()
+        return ":".join(lines)
+        # f = open("static/data/currentsong.txt",'w')
+        # f.writelines(lines)
+        # f.close()
 
 
-songname = os.listdir("music")[0]
-processor = SongProcessor("music/",songname)
-import time
+# songname = os.listdir("music")[0]
+# processor = SongProcessor("music/",songname)
+# import time
 
-for i in range(5):
+# for i in range(5):
     
-    start = time.time()
-    processor.process_period()
-    print(f"time taken {time.time()-start}")
+#     start = time.time()
+#     processor.process_period()
+#     print(f"time taken {time.time()-start}")
 
 
 # %%

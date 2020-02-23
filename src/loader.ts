@@ -1,13 +1,13 @@
-import { fromEvent, ConnectableObservable, zip } from "rxjs";
-import { map, filter, switchMap, publish, scan, buffer, pairwise, throttleTime, concatMap, observeOn, withLatestFrom } from "rxjs/operators";
+import { fromEvent, ConnectableObservable, zip, observable } from "rxjs";
+import { map, filter, switchMap, publish, scan, buffer, pairwise, throttleTime, concatMap, observeOn, withLatestFrom, tap } from "rxjs/operators";
 
 import { Howl } from 'howler';
 import { SongAnalysisData as SongAnalysis } from "./types/types";
 import { ControlBus } from "./bus";
 import { animationFrame } from "rxjs/internal/scheduler/animationFrame";
 import { createMenu } from "./menu/menu";
-
-function loadFile(filePath: string): string {
+import { from } from 'rxjs';
+function getRequest(filePath: string): string {
     var result = null;
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.open("GET", filePath, false);
@@ -17,6 +17,34 @@ function loadFile(filePath: string): string {
     }
     return result;
 }
+function postRequest(filePath: string,args): string {
+    var result = null;
+    var xmlhttp = new XMLHttpRequest();
+    
+    xmlhttp.open("PUT", filePath, false);
+    xmlhttp.send(args);
+    if (xmlhttp.status == 200) {
+        result = xmlhttp.responseText;
+    }
+    return result;
+}
+
+function asyncGetRequest(url)
+{
+    let myFirstPromise = new Promise((resolve, reject) =>{
+        var xmlHttp = new XMLHttpRequest();
+        xmlHttp.onreadystatechange = function() { 
+            if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+                resolve(xmlHttp.responseText);
+        }
+        xmlHttp.open("GET", url, true); // true for asynchronous 
+        xmlHttp.send(null);
+    })
+    return myFirstPromise
+    
+}
+
+
 
 function convertToNumberArray(line: string) {
     return line.split(',').map((x) => parseFloat(x))
@@ -30,9 +58,12 @@ function selectSong(availableSongs,idx=-1)
     return availableSongs[idx] // availableSongs[Math.floor(Math.random() * availableSongs.length)]//
    
 }
-function loadSongAnalysis (chosenSong:string,song:Howl){
-    var data = loadFile("../data/songs/" + chosenSong + ".txt").split(/\r?\n/).map(convertToNumberArray)
-    return new SongAnalysis(data[0],data[1],data[2],data[3],data[4],data[5],data[6],song.duration())    
+function loadSongAnalysis (rawdata,song){
+    console.log("Loading song analysis")
+    console.log(rawdata)
+    let data = rawdata.split(':').map(convertToNumberArray)
+    console.log(data)
+    return new SongAnalysis(data[0],data[1],data[2],data[3],song.duration())    
 }
 
 function waitUntilSongStarts(sound:Howl,resolve) {
@@ -50,15 +81,15 @@ function waitUntilSongStarts(sound:Howl,resolve) {
 
 function loadSong(source:string)
 {
+    postRequest("http://127.0.0.1:5000/select_song",source+".mp3")
     var sound = new Howl({
-        src: ['../music/' + source + ".mp3"]
+        src: ['/static/music/' + source + ".mp3"]
     });
   
     sound.volume(1)
     sound.play()
     sound.seek()
     return new Promise((resolve,fail) => waitUntilSongStarts(sound,resolve))
-
 }
 
 function shuffle(a) {
@@ -71,12 +102,11 @@ function shuffle(a) {
     }
     return a;
 }
-
 export function SetupSongLoading(bus:ControlBus)
 {
-    var availableSongs = loadFile("../data/available.txt")
+    var availableSongs = getRequest("http://127.0.0.1:5000/songs")
                             .split(/\r?\n/).map(x => x.slice(0,x.length-4));
-    availableSongs.pop()
+    
     availableSongs = shuffle(availableSongs)
     createMenu(availableSongs,bus)
     let digitKeys = availableSongs.map((x,idx) => (idx+1).toString())
@@ -97,17 +127,28 @@ export function SetupSongLoading(bus:ControlBus)
     ).subscribe(([previousValue, currentValue]) => previousValue.stop())
 
     bus.songAnalysis$.pipe(map((x) => x.onsets),observeOn(animationFrame)).subscribe(x => bus.onsets$.next(x))
+    bus.onsets$.subscribe(x => console.log("Onsets changes"))
+    
+    zip(bus.songTitle$,bus.songPlayer$).subscribe(x => bus.onsets$.next([]))
 
-    zip(bus.songTitle$,bus.songPlayer$).pipe(
-        map(([title,player]) => loadSongAnalysis(title,player))
-    ).subscribe(x => bus.songAnalysis$.next(x))
+    // bus.songTime$.pipe(
+    //     //maybe insert temporal buffer
+    //     //filter(time => time>1),
+
+    // ).subscribe(x => bus.songAnalysis$.next(x))
+    
+    //from(asyncGetRequest("http://127.0.0.1:5000/update_data")).subscribe(console.log)
+
 
     bus.songTime$.pipe(
-        filter(time => time>1),
-        withLatestFrom(bus.songTitle$,bus.songPlayer$),
-        map(([time,title,player]) => loadSongAnalysis(title,player))
+        withLatestFrom(bus.onsets$,bus.songTitle$,bus.songPlayer$),
+        
+        tap(([time,onsets]) => console.log(onsets.length)),//onsets[onsets.length-1].time)),
+        filter(([time,onsets]) =>  onsets.length == 0 || onsets[onsets.length-1].time - time < 5),
+        concatMap(x =>asyncGetRequest("http://127.0.0.1:5000/update_data")),
+        withLatestFrom(bus.songPlayer$),
+        tap(console.log),
+        map(([data,song]) => loadSongAnalysis(data,song))        
     ).subscribe(x => bus.songAnalysis$.next(x))
-    
-    
 }
 
