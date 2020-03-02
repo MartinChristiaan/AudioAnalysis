@@ -66,6 +66,17 @@ def np_arr_to_str(arr):
    return ",".join([str(item) for item in arr]) 
 datadir =  "../data/"
 songdatadir = datadir+"songs/"   
+
+def filterTooMany(times,margin=0.3):
+    good_idx = [0]
+    
+    for idx,otime in enumerate(times[1:]):
+        if otime - times[good_idx[-1]] >= margin:
+            good_idx+=[idx]
+    
+    return good_idx
+
+
 class SongProcessor():
     
     def __init__(self,musicdir,songname):
@@ -79,15 +90,28 @@ class SongProcessor():
         self.songname = songname
         y,self.sr = librosa.load(self.musicdir + self.songname,duration=0.01,offset = 0)
   
-
+        
+    
     def process_period(self):
    
         t_start = self.cur_period * period
         y, sr = librosa.load(self.musicdir + self.songname,duration=period,offset = t_start)
         t_onset,f_onset,e_onset,e = process(y,sr)
-        self.t_onset = np.concatenate((self.t_onset,t_onset+t_start))
-        self.f_onset = np.concatenate((self.f_onset,f_onset))
-        self.e_onset = np.concatenate((self.e_onset,e_onset))
+        if t_start == 0:    
+            headstart = np.argwhere(t_onset > 1)[:,0]
+            print(headstart.shape)
+            t_onset = t_onset[headstart]
+            f_onset = f_onset[headstart]
+            e_onset = e_onset[headstart]
+        good_idx = filterTooMany(t_onset)
+        
+        
+        self.t_onset = np.concatenate((self.t_onset,t_onset[good_idx]+t_start))
+        # remove onsets to close together
+        
+        
+        self.f_onset = np.concatenate((self.f_onset,f_onset[good_idx]))
+        self.e_onset = np.concatenate((self.e_onset,e_onset[good_idx]))
         self.e  = np.concatenate((self.e,e))
         self.cur_period+=1
         items = [self.t_onset,self.f_onset,self.e_onset,self.e]

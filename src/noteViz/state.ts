@@ -5,18 +5,25 @@ import { Onset } from "../types/types";
 import { hitMargin } from "./config";
 
 export function updateNoteState(noteStates: NoteState[], msg: INoteMessage) {
-    if (msg.kind == "songChange") {
-        console.log("Refreshing arary")
-        return new Array(msg.numNotes).fill(0).map(x => NoteState.UNBORN);
-    }
+ 
     
-    else if (msg.kind == "timeUpdate") {
+    if (msg.kind == "timeUpdate") {
+        if (noteStates == null){
+           noteStates = new Array(msg.onsets.length).fill(0).map(x => NoteState.UNBORN)
+           
+        }
         if (msg.onsets.length > noteStates.length)
         {
             let newnotes = new Array(msg.onsets.length - noteStates.length).fill(0).map(x => NoteState.UNBORN)
             return noteStates.concat(newnotes)
         } 
-        return map2(noteStates, msg.onsets, (state, onset) => getNewNoteState(onset as Onset, state, msg));
+        if (msg.onsets.length>0){
+            return map2(noteStates, msg.onsets, (state, onset) => getNewNoteState(onset as Onset, state, msg));
+        }
+        else
+        {
+            return []
+        }
     }
     else if (msg.kind == "hit") {
         msg.hitNotes.forEach(idx => {
@@ -40,9 +47,9 @@ export function updateNoteState(noteStates: NoteState[], msg: INoteMessage) {
 }
 export function createNoteMessageBasedOnSongtime(songtimeOnsets): INoteMessage {
     let [songTime, onsets] = songtimeOnsets
-    if (songTime < 1) {
-        return { kind: "songChange", numNotes: onsets.length } // protect state
-    }
+    // if (songTime < 1) {
+    //     return { kind: "songChange", numNotes: onsets.length } // protect state
+    // }
     return { kind: "timeUpdate", onsets: onsets, songTime: songTime }
 }
 

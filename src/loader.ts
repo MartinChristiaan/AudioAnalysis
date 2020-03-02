@@ -1,5 +1,5 @@
 import { fromEvent, ConnectableObservable, zip, observable } from "rxjs";
-import { map, filter, switchMap, publish, scan, buffer, pairwise, throttleTime, concatMap, observeOn, withLatestFrom, tap } from "rxjs/operators";
+import { map, filter, switchMap, publish, scan, buffer, pairwise, throttleTime, concatMap, observeOn, withLatestFrom, tap, bufferTime } from "rxjs/operators";
 
 import { Howl } from 'howler';
 import { SongAnalysisData as SongAnalysis } from "./types/types";
@@ -7,6 +7,8 @@ import { ControlBus } from "./bus";
 import { animationFrame } from "rxjs/internal/scheduler/animationFrame";
 import { createMenu } from "./menu/menu";
 import { from } from 'rxjs';
+
+
 function getRequest(filePath: string): string {
     var result = null;
     var xmlhttp = new XMLHttpRequest();
@@ -59,10 +61,10 @@ function selectSong(availableSongs,idx=-1)
    
 }
 function loadSongAnalysis (rawdata,song){
-    console.log("Loading song analysis")
-    console.log(rawdata)
+    // console.log("Loading song analysis")
+    // console.log(rawdata)
     let data = rawdata.split(':').map(convertToNumberArray)
-    console.log(data)
+    //console.log(data)
     return new SongAnalysis(data[0],data[1],data[2],data[3],song.duration())    
 }
 
@@ -87,7 +89,7 @@ function loadSong(source:string)
     });
   
     sound.volume(1)
-    sound.play()
+    //sound.play()
     sound.seek()
     return new Promise((resolve,fail) => waitUntilSongStarts(sound,resolve))
 }
@@ -104,11 +106,12 @@ function shuffle(a) {
 }
 export function SetupSongLoading(bus:ControlBus)
 {
-    var availableSongs = getRequest("http://127.0.0.1:5000/songs")
-                            .split(/\r?\n/).map(x => x.slice(0,x.length-4));
-    
-    availableSongs = shuffle(availableSongs)
-    createMenu(availableSongs,bus)
+    var data = getRequest("http://127.0.0.1:5000/songs").split(/\r?\n/)
+    var availableSongs = data.slice(0,data.length/2)
+                            .map(x => x.slice(0,x.length-4));
+    var durations = data.slice(data.length/2,data.length)
+    //availableSongs = shuffle(availableSongs)
+    createMenu(availableSongs,durations,bus)
     let digitKeys = availableSongs.map((x,idx) => (idx+1).toString())
 
     fromEvent(document,'keydown').pipe(
@@ -126,7 +129,9 @@ export function SetupSongLoading(bus:ControlBus)
         pairwise()    
     ).subscribe(([previousValue, currentValue]) => previousValue.stop())
 
-    bus.songAnalysis$.pipe(map((x) => x.onsets),observeOn(animationFrame)).subscribe(x => bus.onsets$.next(x))
+    bus.songAnalysis$.pipe(
+        map((x) => x.onsets),
+        observeOn(animationFrame)).subscribe(x => bus.onsets$.next(x))
     bus.onsets$.subscribe(x => console.log("Onsets changes"))
     
     zip(bus.songTitle$,bus.songPlayer$).subscribe(x => bus.onsets$.next([]))
@@ -141,14 +146,23 @@ export function SetupSongLoading(bus:ControlBus)
 
 
     bus.songTime$.pipe(
-        withLatestFrom(bus.onsets$,bus.songTitle$,bus.songPlayer$),
-        
-        tap(([time,onsets]) => console.log(onsets.length)),//onsets[onsets.length-1].time)),
-        filter(([time,onsets]) =>  onsets.length == 0 || onsets[onsets.length-1].time - time < 5),
+        bufferTime(1000), 
+        withLatestFrom(bus.onsets$,bus.songPlayer$),
+               
+        //tap(([time,onsets]) => console.log(onsets.length)),//onsets[onsets.length-1].time)),
+        filter(([times,onsets]) =>  onsets.length == 0 || onsets[onsets.length-1].time - times[times.length-1] < 5),
+        tap(x => console.log("requesting new data")),
         concatMap(x =>asyncGetRequest("http://127.0.0.1:5000/update_data")),
+        tap(x => console.log("received new data")),
         withLatestFrom(bus.songPlayer$),
-        tap(console.log),
-        map(([data,song]) => loadSongAnalysis(data,song))        
-    ).subscribe(x => bus.songAnalysis$.next(x))
+        
+        map(([data,song]) => loadSongAnalysis(data,song)),
+        withLatestFrom(bus.songPlayer$)
+                
+    ).subscribe(([data,player]) => {
+                            console.log("data")
+                            console.log(player.playing())
+                            bus.songAnalysis$.next(data)
+                            if (!player.playing()){player.play()} })
 }
 

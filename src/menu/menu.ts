@@ -7,7 +7,7 @@ function div(classname)
   return dv
 }
 
-export function createMenu(songlist: string[],bus:ControlBus) {
+export function createMenu(songlist: string[],duration :string[],bus:ControlBus) {
   var menu = document.getElementById("menu");
 
 
@@ -31,8 +31,8 @@ export function createMenu(songlist: string[],bus:ControlBus) {
   };
   let parent= document.getElementsByClassName("sidebar")[0]
   
-  
-  songlist.forEach(songname => {
+  console.log(songlist)
+  songlist.forEach((songname,idx) => {
     let card = el("div");
     card.className = "songelement";
     mount(parent, card);
@@ -44,7 +44,7 @@ export function createMenu(songlist: string[],bus:ControlBus) {
     nametext.className = "songname"
     mount(card,nametext)
 
-    let durationtext = el("p","3:14")
+    let durationtext = el("p",duration[idx])
     durationtext.className = "songduration"
     mount(card,durationtext)
 

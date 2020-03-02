@@ -44,7 +44,8 @@ export class ControlBus{
             map(([currenttime,numnotes,multiplier]) => {
                 return {margin:0.2,numNotes : numnotes,currentTime : currenttime,level : multiplier}
             })).subscribe(x => this.circumstances$.next(x))
-
+        //this.songTime$.subscribe(x => console.log(x))
+        this.onsets$.subscribe(console.log)
     }
 }
 
